@@ -1,12 +1,6 @@
-# Defects4REST
+# Defects4REST V1.0
 
-
-
-**A comprehensive benchmark framework for systematically deploying, testing, and analyzing bugs in REST API applications.**
-
-Defects4REST enables researchers and developers to reproduce real-world bugs in REST API services by deploying specific buggy and patched versions of applications in isolated Docker containers.
-
-
+A comprehensive benchmark and framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.
 
 ## Table of Contents
 
