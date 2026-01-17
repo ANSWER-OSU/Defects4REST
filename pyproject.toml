@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "defects4REST"
+version = "1.0.0"
+description = "Defects4REST CLI and tooling"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["pandas", "ansible", "requests","boto3"]
+
+[project.scripts]
+defects4rest = "defects4rest.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["defects4rest*"]
+
+[tool.setuptools.package-data]
+defects4rest = [
+  "data/**/*",
+  "src/**/*"
+]
