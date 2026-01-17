@@ -18,8 +18,8 @@ A comprehensive benchmark and framework for systematically deploying, testing, a
 
 ## Features
 
-- **Reproducible Bug Deployment** - Deploy exact buggy or patched versions of REST APIs using Git SHA references
-- **Multi-Project Support** - 12+ real-world REST API projects with documented bugs
+- **Reproducible Bug Deployment** - Deploy buggy or patched versions of REST APIs using Git SHA references
+- **Multi-Project Support** - 12 real-world REST API projects with documented bugs
 - **Container Isolation** - Each deployment runs in isolated Docker containers with automatic port management
 
 ## Supported Projects
