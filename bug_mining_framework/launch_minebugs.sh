@@ -49,7 +49,7 @@ REPOS=(
 
 
 # Define your GitHub token
-GITHUB_TOKEN="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"
+GITHUB_TOKEN="<Your_GitHub_token>"
 ROOT_DIR="./new"
 
 # Loop over each repository
