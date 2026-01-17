@@ -1,0 +1,463 @@
+openapi: 3.0.0
+info:
+  title: enviroCar Server API
+  description: |
+    API for the enviroCar server - a citizen science platform for collecting and sharing car sensor data.
+    **Authentication**: Uses custom headers `X-User` and `X-Token` for authentication.
+    **Bug Note**: This specification is for the buggy version (pre-June 2013) that contains issue #45.
+  version: 1.0-SNAPSHOT
+  contact:
+    name: enviroCar Project
+    url: https://envirocar.org
+  license:
+    name: GNU Affero General Public License v3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+
+servers:
+  - url: http://localhost:8080/rest
+    description: Local Docker instance
+  - url: https://envirocar.org/api/stable
+    description: Production server
+
+security:
+  - enviroCar: []
+
+components:
+  securitySchemes:
+    enviroCar:
+      type: apiKey
+      in: header
+      name: X-User
+      description: |
+        Custom authentication using two headers:
+        - `X-User`: Username
+        - `X-Token`: Plain text token (compared against hashed version in database)
+
+  parameters:
+    username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Username of the user
+    
+    trackId:
+      name: trackid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique identifier for a track
+    
+    measurementId:
+      name: measurementid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique identifier for a measurement
+    
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        maximum: 100
+        default: 100
+      description: Maximum number of items to return (max 100)
+    
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination (0-indexed)
+
+  schemas:
+    User:
+      type: object
+      required:
+        - name
+        - mail
+        - token
+      properties:
+        name:
+          type: string
+          description: Unique username
+        mail:
+          type: string
+          format: email
+          description: User email address
+        token:
+          type: string
+          description: Authentication token (will be hashed by server)
+        password:
+          type: string
+          format: password
+          description: Optional password for authentication
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        modified:
+          type: string
+          format: date-time
+          readOnly: true
+        measurements:
+          type: string
+          format: uri
+          readOnly: true
+        groups:
+          type: string
+          format: uri
+          readOnly: true
+        friends:
+          type: string
+          format: uri
+          readOnly: true
+        tracks:
+          type: string
+          format: uri
+          readOnly: true
+        statistics:
+          type: string
+          format: uri
+          readOnly: true
+
+    Track:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        user:
+          type: string
+        sensor:
+          type: string
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        modified:
+          type: string
+          format: date-time
+          readOnly: true
+        measurements:
+          type: string
+          format: uri
+          readOnly: true
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: integer
+
+  responses:
+    Unauthorized:
+      description: Authentication required or authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    ServerError:
+      description: Internal server error (may include StackOverflowError on user deletion!)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+paths:
+  /users:
+    get:
+      summary: List all users
+      operationId: getUsers
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    
+    post:
+      summary: Create a new user
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request - invalid user data
+
+  /users/{username}:
+    parameters:
+      - $ref: '#/components/parameters/username'
+    
+    get:
+      summary: Get user by username
+      operationId: getUser
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    put:
+      summary: Update user
+      operationId: updateUser
+      tags:
+        - Users
+      security:
+        - enviroCar: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '204':
+          description: User updated successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    
+    delete:
+      summary: Delete user (BUG - causes StackOverflowError!)
+      operationId: deleteUser
+      tags:
+        - Users
+      security:
+        - enviroCar: []
+      description: |
+        **WARNING - BUG #45**: This endpoint has a critical bug in versions before June 2013.
+        Deleting a user causes a StackOverflowError due to infinite recursion in `MongoUserDao.delete()`.
+        The recursion occurs at line 122 when the method tries to clean up related tracks, which 
+        somehow triggers another user deletion, leading to infinite recursion.
+        Expected behavior: Returns 204 No Content on success
+        Actual behavior: Returns 500 Internal Server Error after ~10 seconds with StackOverflowError
+      responses:
+        '204':
+          description: User deleted successfully (when bug is fixed)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /users/{username}/friends:
+    parameters:
+      - $ref: '#/components/parameters/username'
+    
+    get:
+      summary: List user's friends
+      operationId: getUserFriends
+      tags:
+        - Users
+        - Friends
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: List of friends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /users/{username}/friends/{friend}:
+    parameters:
+      - $ref: '#/components/parameters/username'
+      - name: friend
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Username of the friend
+    
+    put:
+      summary: Add a friend
+      operationId: addFriend
+      tags:
+        - Friends
+      security:
+        - enviroCar: []
+      responses:
+        '204':
+          description: Friend added successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    delete:
+      summary: Remove a friend (works correctly, unlike user deletion)
+      operationId: removeFriend
+      tags:
+        - Friends
+      security:
+        - enviroCar: []
+      description: |
+        Note: This endpoint works correctly and does NOT have the StackOverflow bug.
+        Only user deletion has the bug.
+      responses:
+        '204':
+          description: Friend removed successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tracks:
+    get:
+      summary: List all tracks
+      operationId: getTracks
+      tags:
+        - Tracks
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: List of tracks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Track'
+    
+    post:
+      summary: Create a new track
+      operationId: createTrack
+      tags:
+        - Tracks
+      security:
+        - enviroCar: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Track'
+      responses:
+        '201':
+          description: Track created successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tracks/{trackid}:
+    parameters:
+      - $ref: '#/components/parameters/trackId'
+    
+    get:
+      summary: Get track by ID
+      operationId: getTrack
+      tags:
+        - Tracks
+      responses:
+        '200':
+          description: Track details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Track'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      summary: Delete track
+      operationId: deleteTrack
+      tags:
+        - Tracks
+      security:
+        - enviroCar: []
+      responses:
+        '204':
+          description: Track deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/{username}/tracks:
+    parameters:
+      - $ref: '#/components/parameters/username'
+    
+    get:
+      summary: List user's tracks
+      operationId: getUserTracks
+      tags:
+        - Users
+        - Tracks
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: List of user's tracks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Track'
+
+tags:
+  - name: Users
+    description: User management operations
+  - name: Friends
+    description: Friend relationship operations
+  - name: Tracks
+    description: Track (driving route) operations
+
+externalDocs:
+  description: Full API Documentation
+  url: https://envirocar.github.io/enviroCar-server/api/

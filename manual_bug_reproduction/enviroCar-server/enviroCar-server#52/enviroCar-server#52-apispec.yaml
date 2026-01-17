@@ -1,0 +1,393 @@
+openapi: 3.0.3
+info:
+  title: enviroCar HATEOAS API
+  description: |
+    RESTful API for the enviroCar platform using Hypermedia (HATEOAS).
+    Most resources provide `href` links to navigate between entities.
+  version: 1.1.0
+
+servers:
+  - url: https://envirocar.org/api/stable
+    description: Stable API
+
+components:
+  securitySchemes:
+    UserAuth:
+      type: apiKey
+      in: header
+      name: X-User
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: X-Token
+
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 0
+    limitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 100
+    searchParam:
+      name: search
+      in: query
+      schema:
+        type: string
+
+  schemas:
+    # --- Base Definitions (definitions.json) ---
+    Href:
+      type: string
+      format: uri
+    
+    DateTime:
+      type: string
+      format: date-time
+
+    Username:
+      type: string
+      pattern: '^[_A-Za-z0-9-]{6,}$'
+
+    Mail:
+      type: string
+      pattern: '^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$'
+
+    # --- GeoJSON (geometry.json) ---
+    Geometry:
+      oneOf:
+        - $ref: '#/components/schemas/Point'
+        - $ref: '#/components/schemas/LineString'
+        - $ref: '#/components/schemas/Polygon'
+        - $ref: '#/components/schemas/MultiPoint'
+        - $ref: '#/components/schemas/MultiLineString'
+        - $ref: '#/components/schemas/MultiPolygon'
+
+    Point:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [Point] }
+        coordinates: { type: array, minItems: 2, items: { type: number } }
+
+    # --- Reference Objects (definitions.json) ---
+    UserRef:
+      type: object
+      required: [name, href]
+      properties:
+        name: { $ref: '#/components/schemas/Username' }
+        href: { $ref: '#/components/schemas/Href' }
+
+    GroupRef:
+      type: object
+      required: [name, href]
+      properties:
+        name: { type: string }
+        href: { $ref: '#/components/schemas/Href' }
+
+    TrackRef:
+      type: object
+      required: [id, href]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        modified: { $ref: '#/components/schemas/DateTime' }
+        href: { $ref: '#/components/schemas/Href' }
+
+    SensorRef:
+      type: object
+      required: [name, href]
+      properties:
+        name: { type: string }
+        href: { $ref: '#/components/schemas/Href' }
+
+    PhenomenonRef:
+      type: object
+      required: [name, href]
+      properties:
+        name: { type: string }
+        href: { $ref: '#/components/schemas/Href' }
+
+    # --- Domain Entities ---
+    User:
+      type: object
+      required: [name, created, modified, mail]
+      properties:
+        name: { $ref: '#/components/schemas/Username' }
+        mail: { $ref: '#/components/schemas/Mail' }
+        created: { $ref: '#/components/schemas/DateTime' }
+        modified: { $ref: '#/components/schemas/DateTime' }
+        measurements: { $ref: '#/components/schemas/Href' }
+        tracks: { $ref: '#/components/schemas/Href' }
+        friends: { $ref: '#/components/schemas/Href' }
+        groups: { $ref: '#/components/schemas/Href' }
+        statistics: { $ref: '#/components/schemas/Href' }
+
+    Group:
+      type: object
+      required: [name, description, created, modified, owner, members]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        created: { $ref: '#/components/schemas/DateTime' }
+        modified: { $ref: '#/components/schemas/DateTime' }
+        owner: { $ref: '#/components/schemas/UserRef' }
+        members: { $ref: '#/components/schemas/Href' }
+
+    Track:
+      type: object
+      required: [type, properties, features]
+      properties:
+        type: { type: string, enum: [FeatureCollection] }
+        properties:
+          type: object
+          required: [id, sensor, created, modified, user]
+          properties:
+            id: { type: string }
+            name: { type: string }
+            description: { type: string }
+            created: { $ref: '#/components/schemas/DateTime' }
+            modified: { $ref: '#/components/schemas/DateTime' }
+            sensor: { $ref: '#/components/schemas/SensorRef' }
+            user: { $ref: '#/components/schemas/UserRef' }
+            measurements: { $ref: '#/components/schemas/Href' }
+            statistics: { $ref: '#/components/schemas/Href' }
+        features:
+          type: array
+          items: { $ref: '#/components/schemas/Measurement' }
+
+    Measurement:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type: { type: string, enum: [Feature] }
+        geometry: { $ref: '#/components/schemas/Geometry' }
+        properties:
+          type: object
+          required: [id, time, phenomenons]
+          properties:
+            id: { type: string }
+            time: { $ref: '#/components/schemas/DateTime' }
+            href: { $ref: '#/components/schemas/Href' }
+            sensor: { $ref: '#/components/schemas/SensorRef' }
+            user: { $ref: '#/components/schemas/UserRef' }
+            phenomenons:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  value: { type: [string, number, boolean] }
+
+    Activity:
+      type: object
+      required: [time, user, type]
+      properties:
+        time: { $ref: '#/components/schemas/DateTime' }
+        user: { $ref: '#/components/schemas/UserRef' }
+        type: { type: string }
+        group: { $ref: '#/components/schemas/GroupRef' }
+        track: { $ref: '#/components/schemas/TrackRef' }
+        other: { $ref: '#/components/schemas/UserRef' }
+
+security:
+  - UserAuth: []
+    TokenAuth: []
+
+paths:
+  /:
+    get:
+      summary: Root resource with sub-resource links
+      responses:
+        '200':
+          description: Map of URI links
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [users, tracks, groups, sensors, phenomenons, measurements, statistics]
+                properties:
+                  users: { $ref: '#/components/schemas/Href' }
+                  tracks: { $ref: '#/components/schemas/Href' }
+                  groups: { $ref: '#/components/schemas/Href' }
+                  sensors: { $ref: '#/components/schemas/Href' }
+                  phenomenons: { $ref: '#/components/schemas/Href' }
+                  measurements: { $ref: '#/components/schemas/Href' }
+                  statistics: { $ref: '#/components/schemas/Href' }
+
+  /users:
+    get:
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+      responses:
+        '200':
+          description: List of user references
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users: { type: array, items: { $ref: '#/components/schemas/UserRef' } }
+    post:
+      tags: [Users]
+      summary: Create user
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: 'user.create.json' }
+      responses:
+        '201':
+          description: Created
+
+  /users/{username}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Users]
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+    put:
+      tags: [Users]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: 'user.modify.json' }
+      responses:
+        '200':
+          description: Updated
+
+  /users/{username}/friends:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Social]
+      responses:
+        '200':
+          description: User's friends
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users: { type: array, items: { $ref: '#/components/schemas/UserRef' } }
+
+  /tracks:
+    get:
+      tags: [Tracks]
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+      responses:
+        '200':
+          description: List of tracks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tracks: { type: array, items: { $ref: '#/components/schemas/TrackRef' } }
+    post:
+      tags: [Tracks]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: 'track.create.json' }
+      responses:
+        '201':
+          description: Created
+
+  /tracks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Tracks]
+      responses:
+        '200':
+          description: Track details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Track' }
+
+  /groups:
+    get:
+      tags: [Groups]
+      parameters:
+        - $ref: '#/components/parameters/searchParam'
+      responses:
+        '200':
+          description: List of group references
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: { type: array, items: { $ref: '#/components/schemas/GroupRef' } }
+
+  /activities:
+    get:
+      tags: [Activities]
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+      responses:
+        '200':
+          description: Activities list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activities: { type: array, items: { $ref: '#/components/schemas/Activity' } }
+
+  /phenomenons:
+    get:
+      tags: [Phenomenons]
+      responses:
+        '200':
+          description: Phenomenon references
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phenomenons: { type: array, items: { $ref: '#/components/schemas/PhenomenonRef' } }
+
+  /statistics:
+    get:
+      tags: [Statistics]
+      summary: Global statistics
+      responses:
+        '200':
+          description: List of statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statistics:
+                    type: array
+                    items:
+                      type: object
+                      required: [min, max, avg, phenomenon]
+                      properties:
+                        min: { type: number }
+                        max: { type: number }
+                        avg: { type: number }
+                        phenomenon: { $ref: '#/components/schemas/PhenomenonRef' }

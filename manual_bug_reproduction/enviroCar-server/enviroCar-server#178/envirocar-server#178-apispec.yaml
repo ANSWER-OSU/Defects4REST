@@ -1,0 +1,881 @@
+openapi: 3.0.3
+info:
+  title: enviroCar API
+  description: |
+    API for the enviroCar platform, providing access to tracks, measurements, sensors, and social features.
+    
+    ### Authentication
+    Authentication is performed via custom HTTP headers:
+    - `X-User`: The username
+    - `X-Token`: The authentication token
+  version: 1.0.0
+servers:
+  - url: https://envirocar.org/api/stable
+    description: Stable API endpoint
+
+components:
+  securitySchemes:
+    UserAuth:
+      type: apiKey
+      in: header
+      name: X-User
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: X-Token
+
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      description: The page number to retrieve (starts at 0).
+      schema:
+        type: integer
+        default: 0
+    limitParam:
+      name: limit
+      in: query
+      description: The number of entities per page (max 100).
+      schema:
+        type: integer
+        maximum: 100
+        default: 100
+    bboxParam:
+      name: bbox
+      in: query
+      description: "Bounding box for spatial queries format: minx,miny,maxx,maxy"
+      schema:
+        type: string
+        example: "7.0,51.1,7.3,52.0"
+
+  schemas:
+    # --- Basic Definitions from definitions.json ---
+    Username:
+      type: string
+      pattern: '^[_A-Za-z0-9-]{4,}$'
+    Mail:
+      type: string
+      pattern: '^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$'
+    
+    # --- GeoJSON Geometry ---
+    Geometry:
+      oneOf:
+        - $ref: '#/components/schemas/Point'
+        - $ref: '#/components/schemas/LineString'
+        - $ref: '#/components/schemas/Polygon'
+        - $ref: '#/components/schemas/MultiPoint'
+        - $ref: '#/components/schemas/MultiLineString'
+        - $ref: '#/components/schemas/MultiPolygon'
+        - $ref: '#/components/schemas/GeometryCollection'
+
+    Point:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [Point] }
+        coordinates: { $ref: '#/components/schemas/Position' }
+    
+    Position:
+      type: array
+      minItems: 2
+      maxItems: 2
+      items: { type: number }
+
+    LineString:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [LineString] }
+        coordinates: { type: array, minItems: 2, items: { $ref: '#/components/schemas/Position' } }
+
+    Polygon:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [Polygon] }
+        coordinates: { type: array, items: { type: array, minItems: 4, items: { $ref: '#/components/schemas/Position' } } }
+
+    MultiPoint:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [MultiPoint] }
+        coordinates: { type: array, items: { $ref: '#/components/schemas/Position' } }
+
+    MultiLineString:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [MultiLineString] }
+        coordinates: { type: array, items: { type: array, minItems: 2, items: { $ref: '#/components/schemas/Position' } } }
+
+    MultiPolygon:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [MultiPolygon] }
+        coordinates: { type: array, items: { type: array, items: { type: array, minItems: 4, items: { $ref: '#/components/schemas/Position' } } } }
+
+    GeometryCollection:
+      type: object
+      required: [type, geometries]
+      properties:
+        type: { type: string, enum: [GeometryCollection] }
+        geometries: { type: array, items: { $ref: '#/components/schemas/Geometry' } }
+
+    # --- User Schemas ---
+    User:
+      type: object
+      required: [name]
+      properties:
+        name: { $ref: '#/components/schemas/Username' }
+        mail: { $ref: '#/components/schemas/Mail' }
+        created: { type: string, format: date-time }
+        modified: { type: string, format: date-time }
+        firstName: { type: string }
+        lastName: { type: string }
+        country: { type: string }
+        aboutMe: { type: string }
+        url: { type: string, format: uri }
+        dayOfBirth: { type: string, format: date }
+        gender: { type: string, enum: [m, f] }
+        language: { type: string, pattern: '^[a-z]{2}[-_][A-Z]{2}$' }
+        badges: { type: array, items: { type: string } }
+
+    UserCreate:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          required: [name, mail, token]
+          properties:
+            token: { type: string }
+
+    UserModify:
+      type: object
+      properties:
+        mail: { $ref: '#/components/schemas/Mail' }
+        token: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        country: { type: string }
+        aboutMe: { type: string }
+
+    UserReference:
+      type: object
+      required: [name]
+      properties:
+        name: { $ref: '#/components/schemas/Username' }
+
+    # --- Sensor Schemas ---
+    Sensor:
+      type: object
+      required: [type, properties]
+      properties:
+        type: { type: string }
+        properties:
+          type: object
+          required: [id]
+          properties:
+            id: { type: string }
+            manufacturer: { type: string }
+            model: { type: string }
+            fuelType: { type: string, enum: [diesel, gasoline, biodiesel, kerosene, electric] }
+            constructionYear: { type: integer, minimum: 0 }
+            VIN: { type: string }
+
+    SensorCreate:
+      type: object
+      required: [type, properties]
+      properties:
+        type: { type: string, enum: [car] }
+        properties:
+          type: object
+          required: [manufacturer, model, fuelType, constructionYear]
+          properties:
+            manufacturer: { type: string }
+            model: { type: string }
+            fuelType: { type: string }
+            constructionYear: { type: integer }
+
+    # --- Track Schemas ---
+    Track:
+      type: object
+      required: [type, properties, features]
+      properties:
+        type: { type: string, enum: [FeatureCollection] }
+        properties:
+          type: object
+          required: [id, sensor]
+          properties:
+            id: { type: string }
+            name: { type: string }
+            description: { type: string }
+            created: { type: string, format: date-time }
+            modified: { type: string, format: date-time }
+            sensor: { $ref: '#/components/schemas/Sensor' }
+            user: { $ref: '#/components/schemas/User' }
+            length: { type: number }
+            begin: { type: string, format: date-time }
+            end: { type: string, format: date-time }
+        features:
+          type: array
+          items: { $ref: '#/components/schemas/Measurement' }
+
+    TrackCreate:
+      type: object
+      required: [properties]
+      properties:
+        type: { type: string, enum: [FeatureCollection] }
+        properties:
+          type: object
+          required: [sensor]
+          properties:
+            sensor: { type: string, description: "ID of an existing sensor" }
+            name: { type: string }
+            description: { type: string }
+            touVersion: { type: string }
+        features:
+          type: array
+          items: { $ref: '#/components/schemas/MeasurementCreate' }
+
+    TrackReference:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string }
+        modified: { type: string, format: date-time }
+        name: { type: string }
+
+    # --- Measurement Schemas ---
+    Measurement:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type: { type: string, enum: [Feature] }
+        geometry: { $ref: '#/components/schemas/Geometry' }
+        properties:
+          type: object
+          required: [id, time, phenomenons]
+          properties:
+            id: { type: string }
+            time: { type: string, format: date-time }
+            track: { type: string }
+            sensor: { $ref: '#/components/schemas/Sensor' }
+            phenomenons:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  value: { type: [string, number, boolean] }
+
+    MeasurementCreate:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type: { type: string, enum: [Feature] }
+        geometry: { $ref: '#/components/schemas/Geometry' }
+        properties:
+          type: object
+          required: [time]
+          properties:
+            sensor: { type: string }
+            time: { type: string, format: date-time }
+            phenomenons:
+              type: object
+              additionalProperties:
+                type: object
+                required: [value]
+                properties:
+                  value: { type: [string, number, boolean] }
+
+    # --- Phenomenon Schemas ---
+    Phenomenon:
+      type: object
+      required: [name, unit]
+      properties:
+        name: { type: string }
+        unit: { type: string }
+        created: { type: string, format: date-time }
+        modified: { type: string, format: date-time }
+
+    PhenomenonCreate:
+      type: object
+      required: [name, unit]
+      properties:
+        name: { type: string }
+        unit: { type: string }
+
+    # --- Group Schemas ---
+    Group:
+      type: object
+      required: [name, description]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        created: { type: string, format: date-time }
+        modified: { type: string, format: date-time }
+        owner: { $ref: '#/components/schemas/User' }
+
+    GroupModify:
+      type: object
+      properties:
+        description: { type: string }
+
+    # --- Statistics ---
+    Statistic:
+      type: object
+      required: [min, max, avg, measurements, users, tracks, phenomenon]
+      properties:
+        phenomenon: { $ref: '#/components/schemas/Phenomenon' }
+        measurements: { type: integer, minimum: 0 }
+        users: { type: integer, minimum: 0 }
+        tracks: { type: integer, minimum: 0 }
+        sensors: { type: integer, minimum: 0 }
+        min: { type: number }
+        max: { type: number }
+        avg: { type: number }
+
+    # --- Activity ---
+    Activity:
+      type: object
+      required: [time, user, type]
+      properties:
+        time: { type: string, format: date-time }
+        user: { $ref: '#/components/schemas/User' }
+        type: { type: string }
+        group: { $ref: '#/components/schemas/Group' }
+        track: { $ref: '#/components/schemas/TrackReference' }
+        other: { $ref: '#/components/schemas/User' }
+
+    # --- Collections ---
+    UsersResponse:
+      type: object
+      required: [users]
+      properties:
+        users: { type: array, items: { $ref: '#/components/schemas/User' } }
+    
+    TracksResponse:
+      type: object
+      required: [tracks]
+      properties:
+        tracks: { type: array, items: { $ref: '#/components/schemas/TrackReference' } }
+
+    MeasurementsResponse:
+      type: object
+      required: [type, features]
+      properties:
+        type: { type: string, enum: [FeatureCollection] }
+        features: { type: array, items: { $ref: '#/components/schemas/Measurement' } }
+
+    SensorsResponse:
+      type: object
+      required: [sensors]
+      properties:
+        sensors: { type: array, items: { $ref: '#/components/schemas/Sensor' } }
+
+    PhenomenonsResponse:
+      type: object
+      required: [phenomenons]
+      properties:
+        phenomenons: { type: array, items: { $ref: '#/components/schemas/Phenomenon' } }
+
+    GroupsResponse:
+      type: object
+      required: [groups]
+      properties:
+        groups: { type: array, items: { $ref: '#/components/schemas/Group' } }
+
+    StatisticsResponse:
+      type: object
+      required: [statistics]
+      properties:
+        statistics: { type: array, items: { $ref: '#/components/schemas/Statistic' } }
+
+    ActivitiesResponse:
+      type: object
+      required: [activities]
+      properties:
+        activities: { type: array, items: { $ref: '#/components/schemas/Activity' } }
+
+security:
+  - UserAuth: []
+    TokenAuth: []
+
+paths:
+  /:
+    get:
+      summary: Get the root resource
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users: { type: string, format: uri }
+                  tracks: { type: string, format: uri }
+                  groups: { type: string, format: uri }
+                  sensors: { type: string, format: uri }
+                  phenomenons: { type: string, format: uri }
+                  measurements: { type: string, format: uri }
+                  statistics: { type: string, format: uri }
+
+  /users:
+    get:
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsersResponse' }
+    post:
+      tags: [Users]
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserCreate' }
+      responses:
+        '201':
+          description: User created
+
+  /users/{username}:
+    get:
+      tags: [Users]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+    put:
+      tags: [Users]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserModify' }
+      responses:
+        '200':
+          description: User updated
+    delete:
+      tags: [Users]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: User deleted
+
+  /users/{username}/friends:
+    get:
+      tags: [Friends]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of friends
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsersResponse' }
+    post:
+      tags: [Friends]
+      summary: Add a friend
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserCreate' }
+      responses:
+        '201':
+          description: Friend added
+
+  /users/{username}/friends/{friend}:
+    get:
+      tags: [Friends]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+        - name: friend
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Friend details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+    delete:
+      tags: [Friends]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+        - name: friend
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Friend removed
+
+  /tracks:
+    get:
+      tags: [Tracks]
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/bboxParam'
+      responses:
+        '200':
+          description: List of tracks
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TracksResponse' }
+    post:
+      tags: [Tracks]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrackCreate' }
+      responses:
+        '201':
+          description: Track created
+
+  /tracks/{trackid}:
+    get:
+      tags: [Tracks]
+      parameters:
+        - name: trackid
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Track details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Track' }
+    put:
+      tags: [Tracks]
+      parameters:
+        - name: trackid
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrackCreate' }
+      responses:
+        '200':
+          description: Track updated
+
+  /measurements:
+    get:
+      tags: [Measurements]
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/bboxParam'
+      responses:
+        '200':
+          description: List of measurements
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MeasurementsResponse' }
+    post:
+      tags: [Measurements]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MeasurementCreate' }
+      responses:
+        '201':
+          description: Measurements created
+
+  /measurements/{measurementId}:
+    get:
+      tags: [Measurements]
+      parameters:
+        - name: measurementId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Measurement details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Measurement' }
+    delete:
+      tags: [Measurements]
+      parameters:
+        - name: measurementId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Deleted
+
+  /sensors:
+    get:
+      tags: [Sensors]
+      responses:
+        '200':
+          description: List of sensors
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SensorsResponse' }
+    post:
+      tags: [Sensors]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SensorCreate' }
+      responses:
+        '201':
+          description: Sensor created
+
+  /sensors/{sensorId}:
+    get:
+      tags: [Sensors]
+      parameters:
+        - name: sensorId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Sensor details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sensor' }
+
+  /phenomenons:
+    get:
+      tags: [Phenomenons]
+      responses:
+        '200':
+          description: List of phenomenons
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhenomenonsResponse' }
+    post:
+      tags: [Phenomenons]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PhenomenonCreate' }
+      responses:
+        '201':
+          description: Phenomenon created
+
+  /phenomenons/{name}:
+    get:
+      tags: [Phenomenons]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Phenomenon details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Phenomenon' }
+
+  /groups:
+    get:
+      tags: [Groups]
+      responses:
+        '200':
+          description: List of groups
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupsResponse' }
+
+  /groups/{groupname}:
+    get:
+      tags: [Groups]
+      parameters:
+        - name: groupname
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Group details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+    put:
+      tags: [Groups]
+      parameters:
+        - name: groupname
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GroupModify' }
+      responses:
+        '200':
+          description: Group updated
+    delete:
+      tags: [Groups]
+      parameters:
+        - name: groupname
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Group deleted
+
+  /groups/{groupname}/members:
+    get:
+      tags: [Groups]
+      parameters:
+        - name: groupname
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Members list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsersResponse' }
+    post:
+      tags: [Groups]
+      parameters:
+        - name: groupname
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserReference' }
+      responses:
+        '201':
+          description: Member added
+
+  /statistics:
+    get:
+      tags: [Statistics]
+      responses:
+        '200':
+          description: All statistics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StatisticsResponse' }
+
+  /statistics/{phenomenon}:
+    get:
+      tags: [Statistics]
+      parameters:
+        - name: phenomenon
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Phenomenon statistics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Statistic' }
+
+  /users/{username}/activities:
+    get:
+      tags: [Activities]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: User activities
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActivitiesResponse' }
+
+  /users/{username}/friendActivities:
+    get:
+      tags: [Activities]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Friend activities
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActivitiesResponse' }
+
+  /groups/{groupname}/activities:
+    get:
+      tags: [Activities]
+      parameters:
+        - name: groupname
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Group activities
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActivitiesResponse' }
+  /schemas/{schemaId}:
+    get:
+      summary: Download a raw JSON Schema file
+      parameters:
+        - name: schemaId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: track.json
+      responses:
+        '200':
+          description: The raw JSON schema
+          content:
+            application/schema+json:
+              schema:
+                type: object # Dynamic output
