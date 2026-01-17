@@ -199,7 +199,7 @@ results/issues_xml/<repo>/
 
 ## Complete Workflow Examples
 
-### Example 1: Manual Filtering (Simple)
+### Example 1: Manual Filtering
 
 ```bash
 # Extract bugs
