@@ -2,20 +2,6 @@
 
 A comprehensive benchmark and framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.
 
-## Table of Contents
-
-- [Features](#features)
-- [Supported Projects](#supported-projects)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Usage](#usage)
-  - [Info Command](#info-command)
-  - [Checkout Command](#checkout-command)
-- [Configuration](#configuration)
-- [Architecture](#architecture)
-- [Adding New Projects](#adding-new-projects)
-
-
 ## Features
 
 - **Reproducible Bug Deployment** - Deploy buggy or patched versions of REST APIs using Git SHA references
@@ -24,20 +10,20 @@ A comprehensive benchmark and framework for systematically deploying, testing, a
 
 ## Supported Projects
 
-| Project | Issues | Reproduction folder |
-|---------|:------:|-------------------|
-| [AWX](https://github.com/ansible/awx) | 5 | [Open folder](defects4rest/data/bug_reproduction/awx/) |
-| [Dolibarr](https://github.com/Dolibarr/dolibarr) | 25 | [Open folder](defects4rest/data/bug_reproduction/dolibarr/) |
-| [EnviroCar Server](https://github.com/enviroCar/enviroCar-server) | 4 | [Open folder](defects4rest/data/bug_reproduction/enviroCar-server/) |
-| [Flowable Engine](https://github.com/flowable/flowable-engine) | 5 | [Open folder](defects4rest/data/bug_reproduction/flowable-engine/) |
-| [Kafka REST](https://github.com/confluentinc/kafka-rest) | 3 | [Open folder](defects4rest/data/bug_reproduction/kafka-rest/) |
-| [Mastodon](https://github.com/mastodon/mastodon) | 5 | [Open folder](defects4rest/data/bug_reproduction/mastodon/) |
-| [NetBox](https://github.com/netbox-community/netbox) | 6 | [Open folder](defects4rest/data/bug_reproduction/netbox/) |
-| [NocoDB](https://github.com/nocodb/nocodb) | 6 | [Open folder](defects4rest/data/bug_reproduction/nocodb/) |
-| [Podman](https://github.com/containers/podman) | 23 | [Open folder](defects4rest/data/bug_reproduction/podman/) |
-| [REST Countries](https://github.com/apilayer/restcountries) | 16 | [Open folder](defects4rest/data/bug_reproduction/restcountries/) |
-| [SeaweedFS](https://github.com/seaweedfs/seaweedfs) | 9 | [Open folder](defects4rest/data/bug_reproduction/seaweedfs/) |
-| [Signal CLI REST API](https://github.com/bbernhard/signal-cli-rest-api) | 3 | [Open folder](defects4rest/data/bug_reproduction/signal-cli-rest-api/) |
+| Identifier                                                              | Project name        | Number of bugs |
+|-------------------------------------------------------------------------|---------------------|----------------|
+| [AWX](https://github.com/ansible/awx)                                   | awx                 |              5 |
+| [Dolibarr](https://github.com/Dolibarr/dolibarr)                        | dolibarr            |             25 |
+| [EnviroCar Server](https://github.com/enviroCar/enviroCar-server)       | envirocar-server    |              4 |
+| [Flowable Engine](https://github.com/flowable/flowable-engine)          | flowable-engine     |              5 |
+| [Kafka REST](https://github.com/confluentinc/kafka-rest)                | kafka-rest          |              3 |
+| [Mastodon](https://github.com/mastodon/mastodon)                        | mastodon            |              5 |
+| [NetBox](https://github.com/netbox-community/netbox)                    | netbox              |              6 |
+| [NocoDB](https://github.com/nocodb/nocodb)                              | nocodb              |              6 |
+| [Podman](https://github.com/containers/podman)                          | podman              |             23 |
+| [REST Countries](https://github.com/apilayer/restcountries)             | restcountries       |             16 |
+| [SeaweedFS](https://github.com/seaweedfs/seaweedfs)                     | seaweedfs           |              9 |
+| [Signal CLI REST API](https://github.com/bbernhard/signal-cli-rest-api) | signal-cli-rest-api |              3 |
 
 ---
 
@@ -55,8 +41,8 @@ A comprehensive benchmark and framework for systematically deploying, testing, a
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/defects4REST.git
-cd defects4REST
+git clone https://github.com/ANSWER-OSU/Defects4REST.git
+cd Defects4REST
 
 # Install in development mode
 pip install -e .
@@ -184,193 +170,5 @@ defects4rest checkout -p kafka-rest -i 475 --clean
 ```
 
 ---
-
-## Configuration
-
-### Bug Metadata Format
-
-Bug information is stored in CSV files under `defects4rest/data/defect_data/`:
-
-```csv
-bug_id,issue_no,repo,issue_url,title,description,buggy_sha,patch_sha,patched_files,patched_file_types,days_to_fix
-```
-
-**Key Fields:**
-
-| Field | Description |
-|-------|-------------|
-| `bug_id` | Internal bug identifier |
-| `issue_no` | GitHub/repository issue number |
-| `repo` | Repository URL |
-| `issue_url` | Direct link to the issue |
-| `title` | Bug title/summary |
-| `description` | Detailed bug description |
-| `buggy_sha` | Git commit SHA of the buggy version |
-| `patch_sha` | Git commit SHA(s) of patches (pipe-separated for multiple) |
-| `patched_files` | Files modified in the fix (pipe-separated) |
-| `patched_file_types` | File extensions affected (e.g., py, js) |
-| `days_to_fix` | Time from bug report to fix |
-
-
-## Architecture
-
-```
-Defects4REST-private/
-├── defects4rest/                                               # Main package directory
-│   ├── cli.py                                                  # Main CLI entry point
-│   ├── data/
-│   │   ├── defect_data/                                        # Bug metadata CSV files
-│   │   ├── docker_files/                                       # Docker configuration templates
-│   │   └── temp_project_data/                                  # Runtime temporary directories
-│   └── src/
-│       ├── api_dep_setup/                                      # Issue-specific setup hooks
-│       ├── command_scripts/                                    # CLI command implementations
-│       ├── deployment_scripts/                                 # Project-specific deployers
-│       └── utils/                                              # Shared utilities
-├── bug_mining_framework/                                       # GitHub issue mining scripts
-├── manual_bug_reproduction/                                    # Manual bug reproduction steps
-│   └── <project>/                                              # Per-project folders
-│       └── <project>#<N>/                                      # Per-issue folders
-│           ├── readme.md                                       # Step-by-step reproduction
-|           ├── <project>#<issue_number>_buggy_spec.json/yaml   # OpenAPI specification for buggy version
-            └── <project>#<issue_number>_patched_spec.json/yaml # OpenAPI specification for patched version
-├── pyproject.toml
-└── README.md
-```
-
-### Component Overview
-
-#### defects4rest/ (Main Package)
-- **cli.py**: Command-line interface entry point
-- **data/**: Bug metadata, Docker configs
-- **src/**: All source code modules
-  - **command_scripts/**: CLI command implementations (info, checkout)
-  - **deployment_scripts/**: Project-specific deployers
-  - **api_dep_setup/**: Issue-specific setup hooks
-  - **utils/**: Shared utilities (git, shell, metadata parsing)
-
-#### issue_mining/
-Scripts for mining bugs from GitHub repositories.
-
-#### manual_bug_reproduction/
-Muanual bug reproduction steps guides with OpenAPI specifications for both buggy and patched versions.
-
-### Deployment Script Interface
-
-Each project deployer must implement three functions:
-
-```python
-def main(sha=None, issue_id=None):
-    """
-    Deploy the project at the specified SHA.
-
-    Args:
-        sha: Git commit SHA to checkout (None for latest)
-        issue_id: Bug/issue identifier for port allocation
-    """
-    pass
-
-def stop():
-    """Stop running containers without removing volumes."""
-    pass
-
-def clean():
-    """Remove all containers, volumes, and networks."""
-    pass
-```
-
----
-
-## Adding New Projects
-
-## Step 1: Create Bug Metadata CSV
-
-- If you already have a CSV file in the correct format then Skip this step
-
-- If you need to generate the CSV  [`bug_mining_framework/README.md`](bug_mining_framework/README.md)
-
-**CSV format requirements:** Must follow format in [Bug Metadata Format](#bug-metadata-format) 
-section above (includes columns: bug_id, issue_no, repo, issue_url, title, description, 
-buggy_sha, patch_sha, patched_files, patched_file_types, days_to_fix).
-
-
-### Step 2: Create Deployment Script
-
-Create a Python file at:
-```
-defects4rest/src/deployment_scripts/deploy_<project>.py
-```
-
-### Step 3: Implement Required Functions
-
-```python
-import subprocess
-import os
-
-PROJECT_NAME = "your-project"
-CONTAINER_NAME = f"{PROJECT_NAME}-container"
-
-def main(sha=None, issue_id=None):
-    """Deploy the project."""
-    # 1. Clone or update repository
-    # 2. Checkout specified SHA
-    # 3. Build Docker image
-    # 4. Start containers
-    pass
-
-def stop():
-    """Stop containers."""
-    subprocess.run(["docker", "stop", CONTAINER_NAME])
-
-def clean():
-    """Full cleanup."""
-    subprocess.run(["docker", "rm", "-f", CONTAINER_NAME])
-    subprocess.run(["docker", "volume", "prune", "-f"])
-```
-
-### Step 4: (Optional) Add Setup Hooks
-
-For issues requiring test data initialization, create:
-```
-defects4rest/src/api_dep_setup/<project>.py
-```
-
-```python
-def issue_1():
-    """Setup hook for issue #1."""
-    # Create test data, initialize database, etc.
-    pass
-```
-
-### Step 5: Test Your Integration
-
-```bash
-# Test info command
-defects4rest info -p your-project -i 1
-
-# Test deployment
-defects4rest checkout -p your-project -i 1 --buggy --start
-
-# Test cleanup
-defects4rest checkout -p your-project -i 1 --clean
-```
-
-### Step 6: Add Bug Reproduction Steps
-
-Create manual reproduction guides for each bug:
-```
-manual_bug_reproduction/<project>/<project>#<issue_number>/
-├── readme.md                                       # Step-by-step reproduction instructions
-├── <project>#<issue_number>_buggy_spec.json/yaml   # OpenAPI specification for buggy version
-└── <project>#<issue_number>_patched_spec.json/yaml # OpenAPI specification for patched version
-```
-
-Example: `manual_bug_reproduction/netbox/netbox#18991/`
-
-Each readme.md should include:
-- Description
-- GitHub Issue URL
-- Triggering Endpoints
-- Triggering Behavior
-- Expected vs actual behavior
-
+## Adding new projects
+Instructions for adding new projects can be found in our [CONTRIBUTING.md](CONTRIBUTING.md)
