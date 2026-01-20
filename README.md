@@ -1,29 +1,31 @@
-# Defects4REST V1.0
+# Defects4REST version 1.0
 
-A comprehensive benchmark and framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.
+A comprehensive defect benchmark and framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.
 
 ## Features
 
-- **Reproducible Bug Deployment** - Deploy buggy or patched versions of REST APIs using Git SHA references
-- **Multi-Project Support** - 12 real-world REST API projects with documented bugs
-- **Container Isolation** - Each deployment runs in isolated Docker containers with automatic port management
+**Reproducible Bug Deployment for Real-World APIs** — Deploy buggy or patched versions of 12 real-world, open-source REST APIs.
 
-## Supported Projects
+**Detailed Fault Information** — Easily access bug report information, developer-modified files used to repair the bug, types of modified files categorized into eight categories, the time developers took to fix the bug, and commit messages.
 
-| Identifier                                                              | Project name        | Number of bugs |
-|-------------------------------------------------------------------------|---------------------|----------------|
-| [AWX](https://github.com/ansible/awx)                                   | awx                 |              5 |
-| [Dolibarr](https://github.com/Dolibarr/dolibarr)                        | dolibarr            |             25 |
-| [EnviroCar Server](https://github.com/enviroCar/enviroCar-server)       | envirocar-server    |              4 |
-| [Flowable Engine](https://github.com/flowable/flowable-engine)          | flowable-engine     |              5 |
-| [Kafka REST](https://github.com/confluentinc/kafka-rest)                | kafka-rest          |              3 |
-| [Mastodon](https://github.com/mastodon/mastodon)                        | mastodon            |              5 |
-| [NetBox](https://github.com/netbox-community/netbox)                    | netbox              |              6 |
-| [NocoDB](https://github.com/nocodb/nocodb)                              | nocodb              |              6 |
-| [Podman](https://github.com/containers/podman)                          | podman              |             23 |
-| [REST Countries](https://github.com/apilayer/restcountries)             | restcountries       |             16 |
-| [SeaweedFS](https://github.com/seaweedfs/seaweedfs)                     | seaweedfs           |              9 |
-| [Signal CLI REST API](https://github.com/bbernhard/signal-cli-rest-api) | signal-cli-rest-api |              3 |
+**Bug Mining Framework** — Reuse the bug mining framework to automatically add more defects from existing or new REST API projects.
+
+## Supported Projects and Defects
+
+| Project        | Number of defects | 
+|-------------------------------------------------------------------------|------------|
+| [AWX](https://github.com/ansible/awx)                                   |          5 |
+| [Dolibarr](https://github.com/Dolibarr/dolibarr)                        |         25 |
+| [EnviroCar Server](https://github.com/enviroCar/enviroCar-server)       |          4 |
+| [Flowable Engine](https://github.com/flowable/flowable-engine)          |          5 |
+| [Kafka REST](https://github.com/confluentinc/kafka-rest)                |          3 |
+| [Mastodon](https://github.com/mastodon/mastodon)                        |          5 |
+| [NetBox](https://github.com/netbox-community/netbox)                    |          6 |
+| [NocoDB](https://github.com/nocodb/nocodb)                              |          6 |
+| [Podman](https://github.com/containers/podman)                          |         23 |
+| [REST Countries](https://github.com/apilayer/restcountries)             |         16 |
+| [SeaweedFS](https://github.com/seaweedfs/seaweedfs)                     |          9 |
+| [Signal CLI REST API](https://github.com/bbernhard/signal-cli-rest-api) |          3 |
 
 ---
 
