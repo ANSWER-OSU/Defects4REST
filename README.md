@@ -4,7 +4,7 @@ A comprehensive defect benchmark and framework for systematically deploying, tes
 
 ## Features
 
-**Reproducible Bug Deployment for Real-World APIs** — Deploy buggy or patched versions of 12 real-world, open-source REST APIs.
+**Reproducible Bug Deployment for Real-World APIs** — Deploy buggy or patched versions of 12 real-world, open-source REST APIs to replicate 110 defects across these APIs.
 
 **Detailed Fault Information** — Easily access bug report information, developer-modified files used to repair the bug, types of modified files categorized into eight categories, the time developers took to fix the bug, and commit messages.
 
