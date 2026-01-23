@@ -25,6 +25,7 @@ A comprehensive benchmark framework for systematically deploying, testing, and a
 | [SeaweedFS](./bug_replication/seaweedfs/) | 9 |
 | [Signal-CLI REST API](./bug_replication/signal-cli-rest-api/) | 3 |
 
+See the complete list of all bugs: [bug_replication/README.md](./bug_replication/README.md) 
 ## Installation
 
 ### Prerequisites
