@@ -1,43 +1,62 @@
-# Defects4REST version 1.0
+# Defects4REST
 
-A comprehensive defect benchmark and framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.
+A comprehensive benchmark framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.The framework includes 110 documented bugs across 12 real-world open-source projects, complete with deployment scripts, replication steps, and detailed metadata.
 
 ## Features
 
-**Reproducible Bug Deployment for Real-World APIs** — Deploy buggy or patched versions of 12 real-world, open-source REST APIs to replicate 110 defects across these APIs.
+- **Single Command Deployment** — Deploy buggy or patched versions instantly
+- **Pre-configured Environments** — Admin accounts, API tokens, and test data included where applicable
+- **Step-by-Step Guides** — Detailed replication steps provided for all 110 bugs
 
-**Detailed Fault Information** — Easily access bug report information, developer-modified files used to repair the bug, types of modified files categorized into eight categories, the time developers took to fix the bug, and commit messages.
+## Supported Projects
 
-**Bug Mining Framework** — Reuse the bug mining framework to automatically add more defects from existing or new REST API projects.
-
-## Supported Projects and Defects
-
-| Project        | Number of defects | 
-|-------------------------------------------------------------------------|------------|
-| [AWX](https://github.com/ansible/awx)                                   |          5 |
-| [Dolibarr](https://github.com/Dolibarr/dolibarr)                        |         25 |
-| [EnviroCar Server](https://github.com/enviroCar/enviroCar-server)       |          4 |
-| [Flowable Engine](https://github.com/flowable/flowable-engine)          |          5 |
-| [Kafka REST](https://github.com/confluentinc/kafka-rest)                |          3 |
-| [Mastodon](https://github.com/mastodon/mastodon)                        |          5 |
-| [NetBox](https://github.com/netbox-community/netbox)                    |          6 |
-| [NocoDB](https://github.com/nocodb/nocodb)                              |          6 |
-| [Podman](https://github.com/containers/podman)                          |         23 |
-| [REST Countries](https://github.com/apilayer/restcountries)             |         16 |
-| [SeaweedFS](https://github.com/seaweedfs/seaweedfs)                     |          9 |
-| [Signal CLI REST API](https://github.com/bbernhard/signal-cli-rest-api) |          3 |
-
----
+| Project | Bugs |
+|---------|:----:|
+| [AWX](./bug_replication/awx/) | 5 |
+| [Dolibarr](./bug_replication/dolibarr/) | 25 |
+| [EnviroCar Server](./bug_replication/envirocar-server/) | 4 |
+| [Flowable Engine](./bug_replication/flowable-engine/) | 5 |
+| [Kafka REST](./bug_replication/kafka-rest/) | 3 |
+| [Mastodon](./bug_replication/mastodon/) | 5 |
+| [NetBox](./bug_replication/netbox/) | 6 |
+| [NocoDB](./bug_replication/nocodb/) | 6 |
+| [Podman](./bug_replication/podman/) | 23 |
+| [REST Countries](./bug_replication/restcountries/) | 16 |
+| [SeaweedFS](./bug_replication/seaweedfs/) | 9 |
+| [Signal-CLI REST API](./bug_replication/signal-cli-rest-api/) | 3 |
 
 ## Installation
 
 ### Prerequisites
 
-- **Python 3.9+**
-- **Docker** and **Docker Compose**
-- **Git**
-- **Make** (for AWX)
-- **Maven** (for REST Countries)
+#### Linux / macOS:
+- Python 3.9+
+- Docker and Docker Compose
+- Git
+- Go 1.16+
+
+#### Windows
+- Python 3.9+
+- Docker and Docker Compose
+- Git
+- Go 1.16+
+- WSL2 installed with Ubuntu
+- Docker Desktop with WSL integration enabled
+
+#### Project-Specific System Requirements (Podman)
+> **Note:** The following requirements apply only when replicating defects from
+> the **Podman** subject.
+- Linux environment:
+  - Native Linux
+  - Windows Subsystem for Linux (WSL)
+  - Linux virtual machine on macOS (e.g., Podman machine)
+- `sudo` privileges
+- System packages:
+```bash
+sudo apt-get update
+
+sudo apt-get install -y conmon btrfs-progs gcc git golang-go go-md2man iptables libassuan-dev libbtrfs-dev libc6-dev libdevmapper-dev libglib2.0-dev libgpgme-dev libgpg-error-dev libprotobuf-dev libprotobuf-c-dev libseccomp-dev libselinux1-dev libsystemd-dev make netavark passt pkg-config runc uidmap
+````
 
 ### Install from Source
 
@@ -53,124 +72,59 @@ pip install -e .
 defects4rest --help
 ```
 
-
----
-
-## Quick Start
-
-```bash
-# View information about a specific bug
-defects4rest info -p netbox -i 18991
-
-# Deploy the buggy version of issue #18991 for NetBox
-defects4rest checkout -p netbox -i 18991 --buggy --start
-
-# Deploy the patched version
-defects4rest checkout -p netbox -i 18991 --patched --start
-
-# Stop the running containers
-defects4rest checkout -p netbox -i 18991 --stop
-
-# Clean up all resources
-defects4rest checkout -p netbox -i 18991 --clean
-```
-
----
-
 ## Usage
 
-### Info Command
-
-Display detailed information about a specific bug in a project.
+The CLI provides two commands: `info` to view bug details and `checkout` to deploy environments.
 
 ```bash
-defects4rest info -p <project_name> -i <issue_id>
-```
-
-**Arguments:**
-
-| Argument | Description |
-|----------|-------------|
-| `-p, --project` | Project name (e.g., `awx`, `netbox`, `mastodon`) |
-| `-i, --issue` | Issue/bug identifier number |
-
-**Example:**
-
-```bash
-defects4rest info -p netbox -i 18991
-```
-
-**Example Output:**
-
-
-    ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-                                                     Netbox (Issue #18991)                                                  
-    ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-   
-    
-    Project Metadata
-    Project       : netbox
-    Bug ID        : 18991
-    Issue Number  : 18991
-    Issue URL     : https://github.com/netbox-community/netbox/issues/18991
-    Title         : Path tracing broken for front/rear ports in REST API
-    Days to Fix   : 2
-    
-    Patched Files
-    - netbox/dcim/tests/test_api.py
-    - netbox/utilities/fields.py
-    
-    Patched File Types
-    - source-file
-    - test-file
-    
-    SHAs
-    Buggy SHA     : 9a1d9365cd7c703413ca8d15c0b8b737067c275e
-    Patch SHA(s)  : 636148f9654b82f7e664645f3e781a4591a22132
-                    fd2bcda8b8777b955222644a5ff94417ba510cb2
-   
-
-
-### Checkout Command
-
-Deploy, manage, and clean up project instances at specific versions.
-
-```bash
-defects4rest checkout -p <project> -i <issue> [OPTIONS]
-```
-
-**Arguments:**
-
-| Argument | Description |
-|----------|-------------|
-| `-p` | Project name |
-| `-i` | Issue/bug identifier |
-| `--buggy` | Deploy the buggy version |
-| `--patched N` | Deploy the Nth patched version (1-indexed) |
-| `--start` | Start the deployment |
-| `--stop` | Stop running containers (preserves data) |
-| `--clean` | Remove all containers, volumes, and networks |
-
-**Examples:**
-
-```bash
+# View bug details
+defects4rest info -p <project> -i <issue>
 
 # Deploy buggy version
-defects4rest checkout -p kafka-rest -i 475 --buggy --start
+defects4rest checkout -p <project> -i <issue> --buggy --start
 
-# Deploy first patch
-defects4rest checkout -p kafka-rest -i 475 --patched 1 --start
+# Deploy patched version
+defects4rest checkout -p <project> -i <issue> --patched --start
 
-# Deploy second patch (if multiple patches exist)
-defects4rest checkout -p kafka-rest -i 475 --patched 2 --start
-
-# Stop containers
-defects4rest checkout -p kafka-rest -i 475 --stop
-
-# Full cleanup
-defects4rest checkout -p kafka-rest -i 475 --clean
+# Cleanup
+defects4rest checkout -p <project> -i <issue> --clean
 ```
 
----
-## Adding new projects
-Instructions for adding new projects can be found in our [CONTRIBUTING.md](CONTRIBUTING.md)
+See detailed documentation: [info](./docs/commands/info.md) | [checkout](./docs/commands/checkout.md)
+
+## OpenAPI Specifications
+
+For REST API testing tools, OpenAPI specifications are available for each bug at:
+
+```
+bug_replication/<project>/<project>#<issue>/<project>#<issue>_spec.json/yaml
+```
+
+## Defect Categories
+
+| Defect Type | Sub Defect Type |
+|-------------|-----------------|
+| **Configuration and Environment Issues (T1)** | Container and Resource Quota Handling Errors (ST1) |
+| | Job Execution and Workflow Configuration Defects (ST2) |
+| | Environment-Specific Behavior and Configuration Bugs (ST3) |
+| **Data Validation and Query Processing Errors (T2)** | Schema and Payload Validation Errors in POST APIs (ST4) |
+| | Query Filter and Search Parameter Handling Errors (ST5) |
+| **Authentication, Authorization, and Session Management Issues (T3)** | Authentication and Token Management Errors (ST6) |
+| | Session, Token, and Account Lifecycle Management Errors (ST7) |
+| **Integration, Middleware, and Runtime Environment Failures (T4)** | Middleware Integration Failures in REST APIs (ST8) |
+| | Process Signal and Grouping Issues in Containerized APIs (ST9) |
+| | Runtime and Dependency Errors (ST10) |
+| **Data Storage, Access, and Volume Errors (T5)** | Volume and File Upload/Access Errors (ST11) |
+| | Database/Table User Access Handling Errors (ST12) |
+| **Distributed Systems and Cluster Failures (T6)** | Index and Cluster Coordination Failures (ST13) |
+
+## Contributing
+
+We welcome contributions! See our guides:
+
+- [Adding New Bugs](./docs/ADDING_BUGS.md) — Step-by-step guide to add new defects
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
