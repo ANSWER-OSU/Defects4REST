@@ -1,0 +1,660 @@
+openapi: 3.0.3
+info:
+  title: Kafka REST Proxy API
+  description: REST API for interacting with Kafka topics, partitions, consumers, and brokers
+  version: v1
+servers:
+  - url: https://kafkaproxy.example.com
+    description: Kafka REST Proxy Server
+
+paths:
+  /topics:
+    get:
+      summary: Get a list of Kafka topics
+      operationId: listTopics
+      tags:
+        - Topics
+      parameters:
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: List of topic names
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example: ["topic1", "topic2"]
+
+  /topics/{topic_name}:
+    get:
+      summary: Get metadata about a specific topic
+      operationId: getTopic
+      tags:
+        - Topics
+      parameters:
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the topic to get metadata about
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: Topic metadata
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/TopicMetadata'
+        '404':
+          $ref: '#/components/responses/TopicNotFound'
+
+    post:
+      summary: Produce messages to a topic
+      operationId: produceToTopic
+      tags:
+        - Topics
+      parameters:
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the topic to produce messages to
+        - $ref: '#/components/parameters/AcceptHeader'
+      requestBody:
+        required: true
+        content:
+          application/vnd.kafka.binary.v1+json:
+            schema:
+              $ref: '#/components/schemas/BinaryProduceRequest'
+          application/vnd.kafka.avro.v1+json:
+            schema:
+              $ref: '#/components/schemas/AvroProduceRequest'
+      responses:
+        '200':
+          description: Messages produced successfully
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/ProduceResponse'
+        '404':
+          $ref: '#/components/responses/TopicNotFound'
+        '422':
+          $ref: '#/components/responses/SchemaValidationError'
+
+  /topics/{topic_name}/partitions:
+    get:
+      summary: Get a list of partitions for the topic
+      operationId: listPartitions
+      tags:
+        - Partitions
+      parameters:
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the topic
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: List of partitions
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PartitionMetadata'
+        '404':
+          $ref: '#/components/responses/TopicNotFound'
+
+  /topics/{topic_name}/partitions/{partition_id}:
+    get:
+      summary: Get metadata about a single partition
+      operationId: getPartition
+      tags:
+        - Partitions
+      parameters:
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the topic
+        - name: partition_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the partition to inspect
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: Partition metadata
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/PartitionMetadata'
+        '404':
+          $ref: '#/components/responses/PartitionNotFound'
+
+    post:
+      summary: Produce messages to one partition
+      operationId: produceToPartition
+      tags:
+        - Partitions
+      parameters:
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Topic to produce messages to
+        - name: partition_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Partition to produce messages to
+        - $ref: '#/components/parameters/AcceptHeader'
+      requestBody:
+        required: true
+        content:
+          application/vnd.kafka.binary.v1+json:
+            schema:
+              $ref: '#/components/schemas/BinaryPartitionProduceRequest'
+          application/vnd.kafka.avro.v1+json:
+            schema:
+              $ref: '#/components/schemas/AvroPartitionProduceRequest'
+      responses:
+        '200':
+          description: Messages produced successfully
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/ProduceResponse'
+        '404':
+          $ref: '#/components/responses/PartitionNotFound'
+        '422':
+          $ref: '#/components/responses/SchemaValidationError'
+
+  /consumers/{group_name}:
+    post:
+      summary: Create a new consumer instance
+      operationId: createConsumer
+      tags:
+        - Consumers
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The name of the consumer group to join
+        - $ref: '#/components/parameters/AcceptHeader'
+      requestBody:
+        required: true
+        content:
+          application/vnd.kafka.v1+json:
+            schema:
+              $ref: '#/components/schemas/CreateConsumerRequest'
+      responses:
+        '200':
+          description: Consumer instance created
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/ConsumerInstance'
+
+  /consumers/{group_name}/instances/{instance}:
+    post:
+      summary: Commit offsets for the consumer
+      operationId: commitOffsets
+      tags:
+        - Consumers
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The name of the consumer group
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the consumer instance
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: Offsets committed successfully
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommittedOffset'
+        '404':
+          $ref: '#/components/responses/ConsumerNotFound'
+
+    delete:
+      summary: Destroy the consumer instance
+      operationId: deleteConsumer
+      tags:
+        - Consumers
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The name of the consumer group
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the consumer instance
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '204':
+          description: Consumer instance destroyed
+        '404':
+          $ref: '#/components/responses/ConsumerNotFound'
+
+  /consumers/{group_name}/instances/{instance}/topics/{topic_name}:
+    get:
+      summary: Consume messages from a topic
+      operationId: consumeMessages
+      tags:
+        - Consumers
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The name of the consumer group
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the consumer instance
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The topic to consume messages from
+        - name: max_bytes
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Maximum number of bytes of unencoded keys and values
+        - name: Accept
+          in: header
+          required: true
+          schema:
+            type: string
+            enum:
+              - application/vnd.kafka.binary.v1+json
+              - application/vnd.kafka.avro.v1+json
+      responses:
+        '200':
+          description: Messages consumed successfully
+          content:
+            application/vnd.kafka.binary.v1+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BinaryMessage'
+            application/vnd.kafka.avro.v1+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvroMessage'
+        '404':
+          description: Topic or consumer not found
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '406':
+          description: Consumer format mismatch
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error_code: 40601
+                message: "Consumer format does not match the embedded format requested"
+        '409':
+          description: Consumer already subscribed
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error_code: 40901
+                message: "Consumer has already initiated a subscription"
+
+  /brokers:
+    get:
+      summary: Get a list of brokers
+      operationId: listBrokers
+      tags:
+        - Brokers
+      parameters:
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: List of broker IDs
+          content:
+            application/vnd.kafka.v1+json:
+              schema:
+                type: object
+                properties:
+                  brokers:
+                    type: array
+                    items:
+                      type: integer
+              example:
+                brokers: [1, 2, 3]
+
+components:
+  parameters:
+    AcceptHeader:
+      name: Accept
+      in: header
+      required: false
+      schema:
+        type: string
+        default: application/vnd.kafka.v1+json
+      examples:
+        preferred:
+          value: application/vnd.kafka.v1+json
+        generic:
+          value: application/json
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error_code:
+          type: integer
+        message:
+          type: string
+      required:
+        - error_code
+        - message
+
+    TopicMetadata:
+      type: object
+      properties:
+        name:
+          type: string
+        configs:
+          type: object
+          additionalProperties:
+            type: string
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartitionMetadata'
+
+    PartitionMetadata:
+      type: object
+      properties:
+        partition:
+          type: integer
+        leader:
+          type: integer
+        replicas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Replica'
+
+    Replica:
+      type: object
+      properties:
+        broker:
+          type: integer
+        leader:
+          type: boolean
+        in_sync:
+          type: boolean
+
+    BinaryRecord:
+      type: object
+      properties:
+        key:
+          type: string
+          format: base64
+          description: Base64-encoded message key
+        value:
+          type: string
+          format: base64
+          description: Base64-encoded message value
+        partition:
+          type: integer
+          description: Partition to store the message in (optional)
+
+    AvroRecord:
+      type: object
+      properties:
+        key:
+          description: Message key in Avro format
+        value:
+          description: Message value in Avro format
+        partition:
+          type: integer
+          description: Partition to store the message in (optional)
+
+    BinaryProduceRequest:
+      type: array
+      items:
+        $ref: '#/components/schemas/BinaryRecord'
+
+    AvroProduceRequest:
+      type: object
+      properties:
+        key_schema:
+          type: string
+          description: Full schema encoded as a string
+        key_schema_id:
+          type: integer
+          description: Schema ID from registry
+        value_schema:
+          type: string
+          description: Full schema encoded as a string
+        value_schema_id:
+          type: integer
+          description: Schema ID from registry
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvroRecord'
+
+    BinaryPartitionProduceRequest:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/BinaryRecord'
+
+    AvroPartitionProduceRequest:
+      type: object
+      properties:
+        key_schema:
+          type: string
+        key_schema_id:
+          type: integer
+        value_schema:
+          type: string
+        value_schema_id:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvroRecord'
+
+    ProduceResponse:
+      type: object
+      properties:
+        key_schema_id:
+          type: integer
+          nullable: true
+        value_schema_id:
+          type: integer
+        offsets:
+          type: array
+          items:
+            $ref: '#/components/schemas/OffsetInfo'
+
+    OffsetInfo:
+      type: object
+      properties:
+        partition:
+          type: integer
+        offset:
+          type: integer
+          format: int64
+
+    CreateConsumerRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID for the consumer instance
+        format:
+          type: string
+          enum: [binary, avro]
+          default: binary
+          description: Format of consumed messages
+        auto.offset.reset:
+          type: string
+          description: Sets the auto.offset.reset setting
+        auto.commit.enable:
+          type: string
+          description: Sets the auto.commit.enable setting
+
+    ConsumerInstance:
+      type: object
+      properties:
+        instance_id:
+          type: string
+        base_uri:
+          type: string
+          format: uri
+
+    CommittedOffset:
+      type: object
+      properties:
+        topic:
+          type: string
+        partition:
+          type: integer
+        consumed:
+          type: integer
+          format: int64
+        committed:
+          type: integer
+          format: int64
+
+    BinaryMessage:
+      type: object
+      properties:
+        key:
+          type: string
+          format: base64
+        value:
+          type: string
+          format: base64
+        partition:
+          type: integer
+        offset:
+          type: integer
+          format: int64
+
+    AvroMessage:
+      type: object
+      properties:
+        key:
+          description: Message key in Avro format
+        value:
+          description: Message value in Avro format
+        partition:
+          type: integer
+        offset:
+          type: integer
+          format: int64
+
+  responses:
+    TopicNotFound:
+      description: Topic not found
+      content:
+        application/vnd.kafka.v1+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error_code: 40401
+            message: "Topic not found"
+
+    PartitionNotFound:
+      description: Topic or partition not found
+      content:
+        application/vnd.kafka.v1+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            topicNotFound:
+              value:
+                error_code: 40401
+                message: "Topic not found"
+            partitionNotFound:
+              value:
+                error_code: 40402
+                message: "Partition not found"
+
+    ConsumerNotFound:
+      description: Consumer instance not found
+      content:
+        application/vnd.kafka.v1+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error_code: 40403
+            message: "Consumer instance not found"
+
+    SchemaValidationError:
+      description: Schema validation error
+      content:
+        application/vnd.kafka.v1+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            missingKeySchema:
+              value:
+                error_code: 42201
+                message: "Request includes keys and uses a format that requires schemas, but does not include the key_schema or key_schema_id fields"
+            missingValueSchema:
+              value:
+                error_code: 42202
+                message: "Request includes values and uses a format that requires schemas, but does not include the value_schema or value_schema_id fields"
+
+tags:
+  - name: Topics
+    description: Operations on Kafka topics
+  - name: Partitions
+    description: Operations on topic partitions
+  - name: Consumers
+    description: Consumer group operations
+  - name: Brokers
+    description: Broker information

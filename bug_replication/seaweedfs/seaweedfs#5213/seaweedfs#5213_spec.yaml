@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: SeaweedFS Volume Server API
+  description: API for interacting with SeaweedFS volume servers to manage file storage and retrieval.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local SeaweedFS Volume Server
+paths:
+  '/{volumeId},{fileId}':
+    get:
+      summary: Retrieve a file from the volume server
+      parameters:
+        - name: volumeId
+          in: path
+          required: true
+          description: The ID of the volume
+          schema:
+            type: integer
+        - name: fileId
+          in: path
+          required: true
+          description: The ID of the file
+          schema:
+            type: string
+        - name: readDeleted
+          in: query
+          description: If true, attempts to read a deleted file
+          schema:
+            type: boolean
+            default: false
+        - name: width
+          in: query
+          description: Width for image resizing
+          schema:
+            type: integer
+        - name: height
+          in: query
+          description: Height for image resizing
+          schema:
+            type: integer
+        - name: mode
+          in: query
+          description: Resizing mode (fit or fill)
+          schema:
+            type: string
+        - name: crop_x1
+          in: query
+          description: X coordinate for cropping
+          schema:
+            type: integer
+        - name: crop_y1
+          in: query
+          description: Y coordinate for cropping
+          schema:
+            type: integer
+        - name: crop_x2
+          in: query
+          description: X coordinate for cropping
+          schema:
+            type: integer
+        - name: crop_y2
+          in: query
+          description: Y coordinate for cropping
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved the file
+          content:
+            application/octet-stream: {}
+        '404':
+          description: File not found
+        '410':
+          description: File has been deleted
+    head:
+      summary: Check if a file exists on the volume server
+      parameters:
+        - name: volumeId
+          in: path
+          required: true
+          description: The ID of the volume
+          schema:
+            type: integer
+        - name: fileId
+          in: path
+          required: true
+          description: The ID of the file
+          schema:
+            type: string
+        - name: readDeleted
+          in: query
+          description: If true, checks for a deleted file
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: File exists
+        '404':
+          description: File not found
+        '410':
+          description: File has been deleted
+  '/{volumeId},{fileId}/delete':
+    post:
+      summary: Mark a file as deleted on the volume server
+      parameters:
+        - name: volumeId
+          in: path
+          required: true
+          description: The ID of the volume
+          schema:
+            type: integer
+        - name: fileId
+          in: path
+          required: true
+          description: The ID of the file
+          schema:
+            type: string
+      responses:
+        '204':
+          description: File marked as deleted
+        '404':
+          description: File not found
+  '/{volumeId},{fileId}/undelete':
+    post:
+      summary: Restore a previously deleted file on the volume server
+      parameters:
+        - name: volumeId
+          in: path
+          required: true
+          description: The ID of the volume
+          schema:
+            type: integer
+        - name: fileId
+          in: path
+          required: true
+          description: The ID of the file
+          schema:
+            type: string
+      responses:
+        '204':
+          description: File restored
+        '404':
+          description: File not found
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+        - code
+        - message
