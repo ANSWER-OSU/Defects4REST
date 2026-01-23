@@ -12,18 +12,18 @@ A comprehensive benchmark framework for systematically deploying, testing, and a
 
 | Project | Bugs |
 |---------|:----:|
-| [AWX](./bug_replication/awx/) | 5 |
-| [Dolibarr](./bug_replication/dolibarr/) | 25 |
-| [EnviroCar Server](./bug_replication/envirocar-server/) | 4 |
-| [Flowable Engine](./bug_replication/flowable-engine/) | 5 |
-| [Kafka REST](./bug_replication/kafka-rest/) | 3 |
-| [Mastodon](./bug_replication/mastodon/) | 5 |
-| [NetBox](./bug_replication/netbox/) | 6 |
-| [NocoDB](./bug_replication/nocodb/) | 6 |
-| [Podman](./bug_replication/podman/) | 23 |
-| [REST Countries](./bug_replication/restcountries/) | 16 |
-| [SeaweedFS](./bug_replication/seaweedfs/) | 9 |
-| [Signal-CLI REST API](./bug_replication/signal-cli-rest-api/) | 3 |
+| [awx](./bug_replication/awx/) | 5 |
+| [dolibarr](./bug_replication/dolibarr/) | 25 |
+| [enviroCar-server](./bug_replication/envirocar-server/) | 4 |
+| [flowable-engine](./bug_replication/flowable-engine/) | 5 |
+| [kafka-rest](./bug_replication/kafka-rest/) | 3 |
+| [mastodon](./bug_replication/mastodon/) | 5 |
+| [netbox](./bug_replication/netbox/) | 6 |
+| [nocodb](./bug_replication/nocodb/) | 6 |
+| [podman](./bug_replication/podman/) | 23 |
+| [restcountries](./bug_replication/restcountries/) | 16 |
+| [seaweedfs](./bug_replication/seaweedfs/) | 9 |
+| [signal-cli-rest-api](./bug_replication/signal-cli-rest-api/) | 3 |
 
 See the complete list of all bugs: [bug_replication/README.md](./bug_replication/README.md) 
 ## Installation
