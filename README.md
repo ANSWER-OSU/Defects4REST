@@ -1,4 +1,4 @@
-# Defects4REST
+# Defects4REST Version 1.0
 
 A comprehensive benchmark framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.The framework includes 110 defects across 12 real-world open-source projects, complete with deployment scripts, replication steps, and detailed metadata.
 
