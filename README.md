@@ -97,11 +97,13 @@ See detailed documentation: [info](./docs/commands/info.md) | [checkout](./docs/
 
 ## OpenAPI Specifications
 
-For REST API testing tools, OpenAPI specifications are available for each bug at:
+For each bug, the OpenAPI specifications are available at:
 
 ```
 bug_replication/<project>/<project>#<issue>/<project>#<issue>_spec.json/yaml
 ```
+
+(e.g.,[bug_replication/awx/awx#2311130/awx#2311130_spec.json] (https://github.com/ANSWER-OSU/Defects4REST/blob/main/bug_replication/awx/awx%2311130/awx%2311130_spec.json))
 
 ## Defect Categories
 
