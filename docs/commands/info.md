@@ -15,7 +15,7 @@ defects4rest info -p <project> -i <issue_id>
 | `-p, --project` | Yes | Project name (one of `awx`, `netbox`, `mastodon`, ) |
 | `-i, --issue_id` | Yes | GitHub issue number (Issue ID listed [here](./bug_replication/README.md)) |
 
-## Example
+## Example Usage
 
 ```bash
 defects4rest info -p netbox -i 18363
