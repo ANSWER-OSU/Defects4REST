@@ -12,8 +12,8 @@ defects4rest checkout -p <project> -i <issue_id> [OPTIONS]
 
 | Argument | Required | Description |
 |----------|:--------:|-------------|
-| `-p, --project` | Yes | Project name |
-| `-i, --issue_id` | Yes | GitHub issue number |
+| `-p`| Yes | Project name (one of `awx`, `dolibarr` , `enviroCar-server` , `flowable-engine` , `kafka-rest`, `mastodon` , `netbox` , `nocodb` , `podman` , `restcountries`, `seaweedfs`, `signal-cli-rest-api`) |
+| `-i` | Yes | GitHub issue number (Issue ID listed [here](../../bug_replication/README.md)) |
 
 ## Options
 
