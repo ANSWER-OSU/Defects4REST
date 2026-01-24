@@ -20,7 +20,7 @@ defects4rest checkout -p <project> -i <issue_id> [OPTIONS]
 | Option | Description |
 |--------|-------------|
 | `--buggy` | Deploy the buggy version |
-| `--patched [N]` | Deploy the Nth patched version (default: 1) |
+| `--patched` | Deploy the patched version |
 | `--start` | Start deployment (implied with `--buggy` or `--patched`) |
 | `--stop` | Stop running containers |
 | `--clean` | Stop and remove all containers, volumes, networks |
