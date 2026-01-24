@@ -30,17 +30,14 @@ defects4rest checkout -p <project> -i <issue_id> [OPTIONS]
 ### Deploy Buggy Version
 
 ```bash
-defects4rest checkout -p netbox -i 18363 --buggy --start
+defects4rest checkout -p netbox -i 18363 --buggy
 ```
 
 ### Deploy Patched Version
 
 ```bash
 # First patch (default)
-defects4rest checkout -p netbox -i 18363 --patched --start
-
-# Specific patch number
-defects4rest checkout -p netbox -i 18363 --patched 2 --start
+defects4rest checkout -p netbox -i 18363 --patched
 ```
 
 ### Stop Containers
