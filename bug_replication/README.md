@@ -6,7 +6,7 @@ This directory contains **110 repliacable REST API bugs** across **12 open-sourc
 ## Available Defects
 The table below shows the available defects including the defect type, sub defect type and a link to the steps for replicating each defect.
 
-| Project | Issue | Defect Type | Sub Defect Type | Manual Replication |
+| Project | Issue ID | Defect Type | Sub Defect Type | Manual Replication |
 |---------|:-----:|-------------|-----------------|--------------------|
 | [awx](./awx/) | [#7243](https://github.com/ansible/awx/issues/7243) | Authentication, Authorization, and Session Management Issues | Authentication and Token Management Errors | [Replication Step](./awx/awx%237243/README.md) |
 | [awx](./awx/) | [#8305](https://github.com/ansible/awx/issues/8305) | Configuration and Environment Issues | Job Execution and Workflow Configuration Defects | [Replication Step](./awx/awx%238305/README.md) |
