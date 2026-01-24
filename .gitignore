@@ -2,3 +2,6 @@
 /defects4rest/__pycache__
 /defects4rest/src/__pycache__
 *.pyc
+/build
+/defects4REST.egg-info
+/.idea
