@@ -27,51 +27,54 @@ defects4rest checkout -p <project> -i <issue_id> [OPTIONS]
 
 ## Actions
 
-### Deploy Buggy Version
+### Deploy Buggy version and start the service from the URL displayed on the terminal. NOTE: this will stop already running services. 
 
 ```bash
 defects4rest checkout -p netbox -i 18363 --buggy
 ```
 
-### Deploy Patched Version
+### Deploy Patched version and start the service from the URL displayed on the terminal. NOTE: this will stop already running services. 
 
 ```bash
 # First patch (default)
 defects4rest checkout -p netbox -i 18363 --patched
 ```
 
-### Stop Containers
+### Stop Docker container of a buggy or patched version of a service 
 
 ```bash
 defects4rest checkout -p netbox -i 18363 --stop
 ```
 
-### Full Cleanup
+### Delete all Docker Containers of a service 
 
 ```bash
 defects4rest checkout -p netbox -i 18363 --clean
 ```
 
-## Workflow Example
+## Example Usage
 
 ```bash
-# 1. Deploy buggy version
+# 1. Deploy buggy version of netbox project corresponding to issue# 18363 using the following command. The service will be accessible at http://
 defects4rest checkout -p netbox -i 18363 --buggy --start
 
-# 2. Reproduce bug (see project README for curl commands)
+# 2. Execute the bug replication steps (see  )
 curl -X POST "http://localhost:8080/api/dcim/mac-addresses/" ...
 
-# 3. Stop buggy version
+# 3. Stop the buggy version
 defects4rest checkout -p netbox -i 18363 --stop
 
-# 4. Deploy patched version
+# 4. Deploy patched version of netbox project corresponding to issue# 18363 using the following command. The service will be accessible at http://
 defects4rest checkout -p netbox -i 18363 --patched --start
 
-# 5. Verify fix
+# 5. Verify fix by re-executing the bug replication steps. 
 curl -X POST "http://localhost:8080/api/dcim/mac-addresses/" ...
 
-# 6. Cleanup
-defects4rest checkout -p netbox -i 18363 --clean
+# 6. Stop the service if you want to rerun it using the following command. To restart the buggy or patched version of the service, rerun step 1 or step 4, respectively. 
+defects4rest checkout -p netbox -i 18363 --stop
+
+# 7. Delete the Docker container created for a API using the command:
+defects4rest checkout -p netbox -i 18363 --stop
 ```
 
 ## Troubleshooting
