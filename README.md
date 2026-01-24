@@ -63,7 +63,13 @@ sudo apt-get install -y conmon btrfs-progs gcc git golang-go go-md2man iptables 
 
 ### Install from Source
 
+> **Recommended:** Create a new Python virtual environment before installing.
+
 ```bash
+# Create and activate virtual environment (recommended)
+python -m venv defects4rest-env
+source defects4rest-env/bin/activate  # On Windows: defects4rest-env\Scripts\activate
+
 # Clone the repository
 git clone https://github.com/ANSWER-OSU/Defects4REST.git
 cd Defects4REST
@@ -74,6 +80,20 @@ pip install -e .
 # Verify installation
 defects4rest --help
 ```
+
+Once installed, you can run `defects4rest` from any directory as long as the virtual environment is activated.
+
+### Updating to Latest Version
+
+If you have an older version installed, pull the latest changes and reinstall:
+
+```bash
+cd Defects4REST
+git pull
+pip install -e .
+```
+
+> **Note:** Just pulling the repository won't update the installed package, you must rerun `pip install -e .` again to install the cloned version.
 
 ## Usage
 
