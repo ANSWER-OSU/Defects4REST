@@ -12,8 +12,8 @@ defects4rest info -p <project> -i <issue_id>
 
 | Argument | Required | Description |
 |----------|:--------:|-------------|
-| `-p, --project` | Yes | Project name (one of `awx`, `dolibarr` , `enviroCar-server` , `flowable-engine` , `kafka-rest`, `mastodon` , `netbox` , `nocodb` , `podman` , `restcountries`, `seaweedfs`, `signal-cli-rest-api` ) |
-| `-i, --issue_id` | Yes | GitHub issue number (Issue ID listed [here](../../bug_replication/README.md)) |
+| `-p`| Yes | Project name (one of `awx`, `dolibarr` , `enviroCar-server` , `flowable-engine` , `kafka-rest`, `mastodon` , `netbox` , `nocodb` , `podman` , `restcountries`, `seaweedfs`, `signal-cli-rest-api`) |
+| `-i` | Yes | GitHub issue number (Issue ID listed [here](../../bug_replication/README.md)) |
 
 
 ## Example Usage
