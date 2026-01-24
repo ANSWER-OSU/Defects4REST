@@ -12,8 +12,8 @@ defects4rest info -p <project> -i <issue_id>
 
 | Argument | Required | Description |
 |----------|:--------:|-------------|
-| `-p, --project` | Yes | Project name (e.g., `awx`, `netbox`, `mastodon`) |
-| `-i, --issue_id` | Yes | GitHub issue number |
+| `-p, --project` | Yes | Project name (one of `awx`, `netbox`, `mastodon`, ) |
+| `-i, --issue_id` | Yes | GitHub issue number (Issue ID listed [here](./bug_replication/README.md)) |
 
 ## Example
 
