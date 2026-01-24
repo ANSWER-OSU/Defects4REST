@@ -105,7 +105,7 @@ bug_replication/<project>/<project>#<issue>/<project>#<issue>_spec.json/yaml
 
 (e.g., [bug_replication/awx/awx#2311130/awx#2311130_spec.json](https://github.com/ANSWER-OSU/Defects4REST/blob/main/bug_replication/awx/awx%2311130/awx%2311130_spec.json))
 
-## Defect Categories
+## REST API Defect Taxonomy
 
 | Defect Type | Sub Defect Type |
 |-------------|-----------------|
