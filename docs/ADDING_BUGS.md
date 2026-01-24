@@ -319,4 +319,3 @@ If you need help adding a new bug:
 ## See Also
 
 - [Main README](../README.md)
-- [Contributing Guidelines](../CONTRIBUTING.md)
