@@ -12,24 +12,9 @@ defects4rest info -p <project> -i <issue_id>
 
 | Argument | Required | Description |
 |----------|:--------:|-------------|
-| `-p, --project` | Yes | Project name (See below for list of available projects) |
+| `-p, --project` | Yes | Project name (one of `awx`, `dolibarr` , `enviroCar-server` , `flowable-engine` , `kafka-rest`, `mastodon` , `netbox` , `nocodb` , `podman` , `restcountries`, `seaweedfs`, `signal-cli-rest-api` ) |
 | `-i, --issue_id` | Yes | GitHub issue number (Issue ID listed [here](../../bug_replication/README.md)) |
 
-### Available projects
-| Project name | Bugs |
-|---------|:----:|
-| [awx](../../bug_replication/awx/) | 5 |
-| [dolibarr](../../bug_replication/dolibarr/) | 25 |
-| [enviroCar-server](../../bug_replication/envirocar-server/) | 4 |
-| [flowable-engine](../../bug_replication/flowable-engine/) | 5 |
-| [kafka-rest](../../bug_replication/kafka-rest/) | 3 |
-| [mastodon](../../bug_replication/mastodon/) | 5 |
-| [netbox](../../bug_replication/netbox/) | 6 |
-| [nocodb](../../bug_replication/nocodb/) | 6 |
-| [podman](../../bug_replication/podman/) | 23 |
-| [restcountries](../../bug_replication/restcountries/) | 16 |
-| [seaweedfs](../../bug_replication/seaweedfs/) | 9 |
-| [signal-cli-rest-api](../../bug_replication/signal-cli-rest-api/) | 3 |
 
 ## Example Usage
 
