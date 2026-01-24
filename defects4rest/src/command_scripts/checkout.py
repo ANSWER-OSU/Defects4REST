@@ -22,7 +22,7 @@
 import importlib
 from defects4rest.src.utils.issue_metadata import get_bug_info
 
-def run(project_name, issue_id=None, verbose=False, start=False, action="noop", buggy=False, patched=None):
+def run(project_name, issue_id=None, action="deploy", buggy=False, patched=None):
     project_key = project_name.lower()
     module_name = f"defects4rest.src.deployment_scripts.deploy_{project_key}"
     print(f"Checking out {module_name}")
@@ -54,8 +54,6 @@ def run(project_name, issue_id=None, verbose=False, start=False, action="noop", 
             return
         sha = patch_list[patched - 1]
 
-    elif start:
-        sha = "latest"
 
     if action == "deploy":
         if hasattr(deploy_module, "main"):

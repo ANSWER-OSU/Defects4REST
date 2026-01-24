@@ -55,7 +55,6 @@ def main():
     checkout_parser.add_argument("-i", "--issue_id", type=int, required=True, help="Issue ID")
     checkout_parser.add_argument("--buggy", action="store_true", help="Checkout the buggy version")
     checkout_parser.add_argument("--patched", type=int, nargs="?", const=1,help="Checkout the nth patched version (default is 1)")
-    checkout_parser.add_argument("--start", action="store_true",help="Run deployment script (default with buggy/patched)")
     checkout_parser.add_argument("--stop", action="store_true", help="Stop running containers only")
     checkout_parser.add_argument("--clean", action="store_true", help="Stop and remove containers/volumes/networks")
 
@@ -77,8 +76,8 @@ def main():
         elif args.stop:
             # Stop running containers only, keep volumes/networks
             action = "stop"
-        elif args.start or args.buggy or args.patched:
-            # Deploy/start the selected version (buggy or patched)
+        elif args.buggy or args.patched:
+            # Deploy the selected version (buggy or patched)
             action = "deploy"
         else:
             # No action specified
@@ -88,7 +87,6 @@ def main():
         checkout.run(
             project_name=args.project,
             issue_id=args.issue_id,
-            start=args.start,
             action=action,
             buggy=args.buggy,
             patched=args.patched
