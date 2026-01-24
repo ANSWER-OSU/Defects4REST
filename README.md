@@ -7,7 +7,7 @@ The benchmark includes 110 defects across 12 real-world open-source projects alo
 
 - **Single Command Deployment** — Deploy buggy or patched versions instantly
 - **Pre-configured, Bug-specific Environments** — For each bug, the benchmark initializes the setup required to reproduce it, such as admin accounts, API tokens, test data, or other necessary configuration when applicable.
-- **Step-by-Step Guides** — Detailed replication steps provided for all 110 bugs
+- **Step-by-Step Guides** — Detailed, Bug-specific replication steps provided for all 110 bugs
 
 ## Supported Projects
 
