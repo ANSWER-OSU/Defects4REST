@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define an array of GitHub repository URLs
-REPOS=(
+REPOS_URL=(
     "https://github.com/apilayer/restcountries"
   # "https://github.com/nopSolutions/nopCommerce"
   # "https://github.com/octokit/octokit.js"
@@ -53,7 +53,7 @@ GITHUB_TOKEN="<Your_GitHub_token>"
 ROOT_DIR="./new"
 
 # Loop over each repository
-for REPO in "${REPOS[@]}"; do
+for REPO in "${REPOS_URL[@]}"; do
     REPO_NAME=$(echo "$REPO" | awk -F/ '{print $(NF-1) "-" $NF}')
     LOG_FILE="logs/${REPO_NAME}.log"
 
