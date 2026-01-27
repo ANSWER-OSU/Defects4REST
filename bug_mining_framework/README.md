@@ -1,40 +1,57 @@
-# GitHub Bug Mining Framework
+# Bug Mining Framework
 
-Automatically extract bug data from GitHub repositories and generate CSV datasets with optional REST API bug classification.
+This framework automatically extracts bug data from GitHub repositories and generates CSV datasets compatible with Defects4REST. The tool fetches closed issues, identifies associated commits, and produces structured metadata for each bug.
+
+## Overview
+
+The bug mining process consists of the following steps:
+
+1. **Extract** all closed issues from a GitHub repository
+2. **Identify** commits that fix each issue (patch commits)
+3. **Derive** the buggy commit (parent of the first patch commit)
+4. **Generate** CSV and XML files with bug metadata
+5. **Filter** for REST API bugs (manually or using GPT-4)
+
+The output CSV can be directly used with Defects4REST after filtering for REST API bugs.
 
 ---
 
-## Quick Start Guide
+## Prerequisites
 
-### Step 1: Get a GitHub Token
+| Requirement | Description |
+|-------------|-------------|
+| Python 3.x | Required for running the mining script |
+| GitHub Token | Personal access token with `repo` scope |
+| Dependencies | `requests` (install via requirements.txt) |
+
+### Getting a GitHub Token
 
 1. Go to https://github.com/settings/tokens
 2. Click "Generate new token (classic)"
-3. Give it a name: `Bug Mining Tool`
+3. Name it: `Bug Mining Tool`
 4. Select scope: `repo`
 5. Click "Generate token"
-6. COPY THE TOKEN (you won't see it again!)
+6. Copy the token (you won't see it again)
 
+---
 
-### Step 2: Install Dependencies
+## Installation
 
 ```bash
+cd bug_mining_framework
+
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### Step 3: Make Scripts Executable
-
-```bash
+# Make scripts executable (Linux/macOS)
 chmod +x mine_bugs.sh launch_minebugs.sh
 ```
 
-### Step 4: Run the Tool
+---
 
-You can process repositories in two ways:
-- Single repository - Process one repo at a time (good for testing)
-- Multiple repositories - Batch process several repos (see [Processing Multiple Repositories](#processing-multiple-repositories) section below.)
+## Usage
 
-**For a single repository:**
+### Single Repository
 
 ```bash
 python3 github_issue_processor.py \
@@ -43,7 +60,8 @@ python3 github_issue_processor.py \
   --resultpath "./results"
 ```
 
-**Example:**
+**Example using `restcountries` repository:**
+Replace the repository URL with the repository you want to mine bugs from.
 
 ```bash
 python3 github_issue_processor.py \
@@ -52,234 +70,166 @@ python3 github_issue_processor.py \
   --resultpath "./results"
 ```
 
+### Multiple Repositories
 
-### Step 5: Check Your Output
+For batch processing, edit `launch_minebugs.sh`:
 
-The tool generates both XML files and CSV like this:
-
-```
-results/
-└── issues_xml/
-    └── restcountries/
-        ├── restcountries_Issue123.xml          ← XML files
-        ├── restcountries_Issue124.xml
-        ├── ...
-        ├── AAAmastertracker_restcountries.csv  ← XML tracker
-        └── restcountries_info.csv              ← CSV for Defects4REST 
-```
-
-
-## Step 6: Filter REST API Bugs (Choose One)
-
-**Important:** The tool extracts ALL bugs for the given repo. You need to filter for REST API bugs.
-
-### Option A: Manual Filtering 
-
-**1.** Open the CSV:
+1. Add repositories to the `REPOS` array:
    ```bash
-   open ./results/issues_xml/<repo>/<repo>_info.csv
-   ```
-
-**2.** Review and filter:
-   - Read `title` and `description` columns
-   - Delete non-REST API bugs
-   - Save the file
-
-**3.** Copy to Defects4REST:
-   ```bash
-   cp ./results/issues_xml/<repo>/<repo>_info.csv \
-      ./defects4rest/data/defect_data/<repo>_info.csv
-   ```
-
-### Option B: Automated GPT-4 Classification
-
-Use LLM to automatically identify REST API bugs.
-**Cost Warning:** This option uses OpenAI's API Key and will incur costs.
-
-**1**. Install additional dependencies:
-```bash
-pip install openai pandas
-```
-
-**2.** Get OpenAI API key:
-- Go to https://platform.openai.com/api-keys
-- Create and copy your API key
-
-**3.** Update the classification script:
-
-Edit `classify_rest_api_bugs.py`:
-```python
-client = OpenAI(api_key="sk-proj-YOUR_KEY_HERE")
-```
-
-**4.** Run classification:
-```bash
-python classify_rest_api_bugs.py ./results/issues_xml/<project_name>/
-```
-
-**Output:**
-- `rest_api_issues.csv` - High-confidence REST API bugs only (≥70%)
-
-**5.** Copy to Defects4REST:
-
-The classification CSV has the same format as the original, so just copy and rename it:
-
-```bash
-cp rest_api_issues.csv ./defects4rest/data/defect_data/_info.csv
-```
-
----
-
-## Processing Multiple Repositories
-Instead of running the script manually for each repository, you can automate the process to extract bugs from multiple repositories in one go. This is useful when you want to build a dataset from several projects.
-
-**Edit the Batch Script**
-
-**Step 1.** Open `launch_minebugs.sh` in a text editor
-
-**Step 2.** Find the `REPOS` array (line 4):
-   ```bash
-   REPOS=(
-       "https://github.com/apilayer/restcountries"
-   )
-   ```
-
-**Step 3.** Add your repositories:
-   ```bash
-   REPOS=(
+   REPO_URL=(
        "https://github.com/apilayer/restcountries"
        "https://github.com/strapi/strapi"
-       "https://github.com/supabase/supabase"
    )
    ```
 
-**Step 4.** Update your token (line 51):
+2. Set your token:
    ```bash
    GITHUB_TOKEN="YOUR_GITHUB_TOKEN_HERE"
    ```
 
-**Step 5.** Save and run:
+3. Run:
    ```bash
    bash launch_minebugs.sh
    ```
 
 ---
 
-## Output Format
+## Output
 
-### Files Generated
-
-For each repository:
+The tool generates the following files for each repository:
 
 ```
 results/issues_xml/<repo>/
-├── <repo>_Issue123.xml                  ← Individual bug XML files
+├── <repo>_Issue123.xml           # Individual bug record (XML)
 ├── <repo>_Issue124.xml
-├── AAAmastertracker_<repo>.csv          ← XML file tracker
-└── <repo>_info.csv                      ← Defects4REST CSV 
+├── AAAmastertracker_<repo>.csv   # Index of processed issues
+└── <repo>_info.csv               # CSV for Defects4REST
 ```
 
-### CSV Columns
+### CSV Schema
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| `bug_id` | Internal bug ID (auto-increment) | `1`, `2`, `3` |
+| `bug_id` | Auto-incremented identifier | `1`, `2`, `3` |
 | `issue_no` | GitHub issue number | `12345` |
 | `repo` | Repository URL | `https://github.com/owner/repo` |
 | `issue_url` | Direct link to issue | `https://github.com/owner/repo/issues/12345` |
-| `title` | Bug title | `Fix null pointer exception` |
-| `description` | Bug description | `Users reported crashes...` |
+| `title` | Issue title | `Fix null pointer exception` |
+| `description` | Issue description | `Users reported crashes...` |
 | `buggy_sha` | Commit SHA before fix | `abc123def456...` |
 | `patch_sha` | Fix commit SHA(s), pipe-separated | `def456\|ghi789` |
 | `patched_files` | Modified files, pipe-separated | `src/main.py\|tests/test.py` |
 | `patched_file_types` | File extensions | `py\|js\|md` |
-| `days_to_fix` | Days from open to close | `7` |
+| `days_to_fix` | Days from issue open to close | `7` |
+| `buggy_docker_version` | Docker Hub image tag for buggy version (optional) | `v4.2.1` |
+| `patched_docker_version` | Docker Hub image tag for patched version (optional) | `v4.2.2` |
+
+**Note:** Some projects use Docker Hub images instead of building from source. For these projects, `buggy_docker_version` and `patched_docker_version` specify the image tags to pull, eliminating the need to build from git commits.
 
 ---
 
-## Complete Workflow Examples
+## Filtering for REST API Bugs
 
-### Example 1: Manual Filtering
+The mining tool extracts **all** bugs from a repository. You must filter for REST API bugs before using the data with Defects4REST.
+
+### Option A: Manual Filtering
+
+1. Open the CSV:
+   ```bash
+   open ./results/issues_xml/<repo>/<repo>_info.csv
+   ```
+
+2. Review `title` and `description` columns
+
+3. Delete rows that are not REST API bugs
+
+4. Save the file
+
+5. Copy to Defects4REST:
+   ```bash
+   cp ./results/issues_xml/<repo>/<repo>_info.csv \
+      ../defects4rest/data/defect_data/<repo>_info.csv
+   ```
+
+### Option B: GPT-4 Classification
+
+Automatically classify bugs using OpenAI's API.
+
+**Warning:** This option incurs API costs.
+
+1. Install dependencies:
+   ```bash
+   pip install openai pandas
+   ```
+
+2. Get an OpenAI API key from https://platform.openai.com/api-keys
+
+3. Edit `classify_rest_api_bugs.py`:
+   ```python
+   client = OpenAI(api_key="sk-proj-YOUR_KEY_HERE")
+   ```
+
+4. Run classification:
+   ```bash
+   python classify_rest_api_bugs.py ./results/issues_xml/<repo>/
+   ```
+
+5. Copy filtered results:
+   ```bash
+   cp rest_api_issues.csv ../defects4rest/data/defect_data/<repo>_info.csv
+   ```
+
+---
+
+## Complete Workflow Example
 
 ```bash
-# Extract bugs
+# 1. Extract bugs from repository
 python3 github_issue_processor.py \
   --repo-url "https://github.com/strapi/strapi" \
   --token "github_pat_..." \
   --resultpath "./results"
 
-# Manual filtering
+# 2. Filter for REST API bugs (manual or GPT-4)
 open ./results/issues_xml/strapi/strapi_info.csv
 # Delete non-REST API bugs and save
 
-# Copy to Defects4REST
+# 3. Copy to Defects4REST
 cp ./results/issues_xml/strapi/strapi_info.csv \
-   ./defects4rest/data/defect_data/strapi_info.csv
+   ../defects4rest/data/defect_data/strapi_info.csv
 
-# Use with Defects4REST
+# 4. Verify with Defects4REST
 defects4rest info -p strapi -i 12345
 ```
 
 ---
 
-### Example 2: GPT-4 Classification (Automated)
+## Rate Limiting
 
-```bash
-# Extract bugs
-python3 github_issue_processor.py \
-  --repo-url "https://github.com/strapi/strapi" \
-  --token "github_pat_..." \
-  --resultpath "./results"
+The tool automatically handles GitHub API rate limits:
 
-# GPT-4 classification
-python classify_rest_api_bugs.py ./results/issues_xml/strapi/
+- Detects 401/403 errors
+- Saves checkpoint with current progress
+- Waits until rate limit resets
+- Resumes from checkpoint on restart
 
-# Copy filtered bugs to Defects4REST
-cp rest_api_issues.csv ./defects4rest/data/defect_data/strapi_info.csv
-
-# Use with Defects4REST
-defects4rest info -p strapi -i 12345
-```
+No manual intervention is required.
 
 ---
 
-## Common Issues
+## Troubleshooting
 
-### "Error 401: Bad credentials"
+| Problem | Solution |
+|---------|----------|
+| Error 401: Bad credentials | Generate a new token at https://github.com/settings/tokens |
+| Error 403: Rate limit | Wait (the script handles this automatically) |
+| Permission denied | Run `chmod +x mine_bugs.sh launch_minebugs.sh` |
+| No qualifying issues found | Repository has no closed issues with commits — try a different repository |
+| ModuleNotFoundError: openai | Run `pip install openai pandas` |
 
-**Problem:** Invalid GitHub token
+---
 
-**Solution:** Generate a new token at https://github.com/settings/tokens
+## See Also
 
-
-### "Error 403: Rate limit"
-
-**Problem:** Too many API requests
-
-**Solution:** Wait (the script handles this automatically)
-
-
-### "Permission denied"
-
-**Problem:** Scripts aren't executable
-
-**Solution:**
-```bash
-chmod +x mine_bugs.sh launch_minebugs.sh
-```
-
-### "No qualifying issues found"
-
-**Problem:** Repository has no closed issues with commits
-
-**Solution:** This is normal - try a different repository
-
-
-### "ModuleNotFoundError: No module named 'openai'"
-
-**Problem:** Missing dependencies for classification
-
-**Solution:**
-```bash
-pip install openai pandas
-```
+- [Adding New Bugs](../docs/ADDING_BUGS.md) — Complete guide for adding bugs to Defects4REST
+- [Main README](../README.md) — Defects4REST overview and usage
