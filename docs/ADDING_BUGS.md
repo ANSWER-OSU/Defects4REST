@@ -1,321 +1,334 @@
 # Adding New Bugs to Defects4REST
 
-This guide provides detailed step-by-step instructions for adding new bugs to the Defects4REST framework, either for existing projects or entirely new projects.
+This document describes the process of adding new bugs to Defects4REST. The process involves mining bugs from GitHub, collecting metadata, and creating the necessary deployment and documentation files.
 
 ## Overview
 
-Adding a new bug to Defects4REST involves three main components:
+Adding bugs to Defects4REST consists of the following high-level steps:
 
-1. **CSV Metadata** — Bug information in the project's CSV file
-2. **Bug Documentation** — README with reproduction steps
-3. **Deployment Support** — Ensuring the deployment script supports the bug's version
+1. **Mine bugs** from GitHub using the bug mining framework
+2. **Filter** for REST API bugs (manually or using GPT-4)
+3. **Create deployment script** (for new projects only)
+4. **Document reproduction steps** for each bug
+5. **Add OpenAPI specifications** for affected endpoints
+6. **Verify** bugs are reproducible
 
-### Directory Structure
+The [Bug Mining Framework](../bug_mining_framework/README.md) automates steps 1-2 by extracting bug data from GitHub repositories and generating CSV files compatible with Defects4REST.
 
-```
-Defects4REST/
-├── defects4rest/
-│   └── data/
-│       └── defect_data/
-│           └── <project>_info.csv    # Bug metadata
-├── bug_replication/
-│   └── <project>/
-│       ├── README.md                  # Project overview
-│       └── <project>#<issue>/
-│           └── README.md              # Bug reproduction steps
-└── defects4rest/
-    └── src/
-        └── deployment_scripts/
-            └── deploy_<project>.py    # Deployment script
-```
+---
+
+## Bug Requirements
+
+Each bug in Defects4REST must satisfy the following criteria:
+
+| Criterion | Description |
+|-----------|-------------|
+| REST API related | The bug affects REST API behavior (responses, validation, authentication) |
+| Reproducible | The bug can be triggered via HTTP requests |
+| Issue tracked | The bug has an associated issue in the project's issue tracker |
+| Fix available | A patch commit exists in the repository |
 
 ---
 
 ## Adding Bugs to Existing Projects
 
-### Step 1: Update the CSV File
+For projects already in Defects4REST, follow these steps:
 
-Add a new row to the project's CSV file at:
-`defects4rest/data/defect_data/<project>_info.csv`
+1. **Mine bugs** using the Bug Mining Framework (see [Step 1](#step-1-mine-bugs-from-github))
+2. **Filter** for REST API bugs (see [Step 2](#step-2-filter-for-rest-api-bugs))
+3. **Append** new bugs to the existing CSV (see [Step 3](#step-3-add-csv-to-defects4rest))
+4. **Document** reproduction steps for each bug (see [Step 5](#step-5-document-reproduction-steps))
+5. **Add** OpenAPI specifications (see [Step 6](#step-6-add-openapi-specification))
+6. **Update** the project README table (see [Step 7](#step-7-update-project-readme))
+7. **Verify** bugs are reproducible (see [Step 8](#step-8-verify-the-bug))
 
-#### CSV Columns
-
-```csv
-bug_id,issue_no,repo,issue_url,title,description,patched_file_types,text_for_topic_modeling,prediction,confidence,buggy_sha,patch_sha,patched_files,days_to_fix,buggy_docker_version,patched_docker_version
-```
-
-#### Example Row
-
-```csv
-7,18363,netbox,https://github.com/netbox-community/netbox/issues/18363,cant create vm mac-address via api,"API POST request to create a MAC address fails with a 400 error",source-file|test-file,"mac address api validation error",bug,0.95,9a1d9365cd7c703413ca8d15c0b8b737067c275e,636148f9654b82f7e664645f3e781a4591a22132,netbox/dcim/api/serializers.py|netbox/dcim/tests/test_api.py,3,v4.2.1,v4.2.2
-```
-
-### Step 2: Create Bug Documentation
-
-Create the bug directory and README:
-
-```bash
-mkdir -p bug_replication/<project>/<project>#<issue_no>
-```
-
-Create `bug_replication/<project>/<project>#<issue_no>/README.md` with the following sections:
-
-| Section | Description |
-|---------|-------------|
-| Description | Brief description of the bug |
-| GitHub Issue URL | Link to the original issue |
-| Triggering Endpoints | List of affected API endpoints |
-| Triggering Behavior | Step-by-step reproduction with curl commands |
-| Buggy Response | HTTP status code and response body |
-| Expected Response | What the correct response should be |
-
-See existing bug READMEs for examples: [netbox#18363](../bug_replication/netbox/netbox%2318363/README.md)
-
-### Step 3: Add OpenAPI Specification
-
-Create the OpenAPI spec at:
-
-```
-bug_replication/<project>/<project>#<issue_no>/<project>#<issue_no>_spec.json/yaml
-```
-
-### Step 4: Update Project README
-
-Add the new bug to the Available Defects table in `bug_replication/<project>/README.md`.
+**Note:** Do not manually add rows to the CSV. Always use the bug mining framework to ensure correct commit SHAs and metadata.
 
 ---
 
 ## Adding a New Project
 
-### Step 1: Evaluate Project Suitability
+For new projects not yet in Defects4REST, follow all steps below including creating a deployment script.
 
-Ensure the project:
+---
 
-- Has a REST API
-- Is open-source with public issue tracker
-- Has documented API bugs
+## Step 1: Mine Bugs from GitHub
 
-### Step 2: Create Bug Metadata CSV
+Use the Bug Mining Framework to automatically extract bug data from GitHub repositories.
 
-- If you already have a CSV file in the correct format, skip this step
-- If you need to generate the CSV, see [`bug_mining_framework/README.md`](../bug_mining_framework/README.md)
-
-**CSV format requirements:** Must follow the format in [Bug Metadata Format](#bug-metadata-format) explained above.
-
-### Step 3: Create Project Structure
+### Quick Start
 
 ```bash
-# Create directories
-mkdir -p bug_replication/<project>
-mkdir -p defects4rest/data/defect_data
+cd bug_mining_framework
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the mining tool
+python3 github_issue_processor.py \
+  --repo-url "https://github.com/owner/repo" \
+  --token "YOUR_GITHUB_TOKEN" \
+  --resultpath "./results"
 ```
 
-### Step 4: Create CSV File
+### Output Files
 
-Place the CSV file at `defects4rest/data/defect_data/<project>_info.csv`
+The tool generates:
 
-### Step 5: Create Deployment Script
+```
+results/issues_xml/<repo>/
+├── <repo>_Issue123.xml           # Individual bug records (XML)
+├── <repo>_Issue124.xml
+├── AAAmastertracker_<repo>.csv   # Index of all processed issues
+└── <repo>_info.csv               # CSV for Defects4REST
+```
 
-Create `defects4rest/src/deployment_scripts/deploy_<project>.py`:
+For detailed instructions, see [Bug Mining Framework README](../bug_mining_framework/README.md).
+
+---
+
+## Step 2: Filter for REST API Bugs
+
+The mining tool extracts **all** bugs. You must filter for REST API bugs.
+
+### Option A: Manual Filtering
+
+1. Open the generated CSV:
+   ```bash
+   open ./results/issues_xml/<repo>/<repo>_info.csv
+   ```
+
+2. Review `title` and `description` columns
+
+3. Delete rows that are not REST API bugs
+
+4. Save the filtered file
+
+### Option B: GPT-4 Classification
+
+Use automated classification (requires OpenAI API key):
+
+```bash
+python classify_rest_api_bugs.py ./results/issues_xml/<repo>/
+```
+
+This produces `rest_api_issues.csv` containing only high-confidence REST API bugs.
+
+---
+
+## Step 3: Add CSV to Defects4REST
+
+### For New Projects
+
+Copy the filtered CSV to the Defects4REST data directory:
+
+```bash
+cp ./results/issues_xml/<repo>/<repo>_info.csv \
+   ../defects4rest/data/defect_data/<repo>_info.csv
+```
+
+### For Existing Projects
+
+If the project already exists in Defects4REST, append the new bugs to the existing CSV:
+
+1. Open both CSVs (existing and newly mined)
+2. Copy new rows from the mined CSV
+3. Append to the existing CSV
+4. Update `bug_id` values to continue the sequence
+
+**Note:** Always use the bug mining framework to extract bug metadata. Do not manually add rows to the CSV — the mining tool ensures correct commit SHAs and patched file information.
+
+### CSV Schema
+
+| Column | Description |
+|--------|-------------|
+| `bug_id` | Unique identifier (auto-increment) |
+| `issue_no` | GitHub issue number |
+| `repo` | Repository name |
+| `issue_url` | Full URL to the issue |
+| `title` | Issue title |
+| `description` | Issue description |
+| `buggy_sha` | Commit hash containing the bug |
+| `patch_sha` | Commit hash(es) of the fix (pipe-separated) |
+| `patched_files` | Files modified (pipe-separated) |
+| `patched_file_types` | File type categories (pipe-separated) |
+| `days_to_fix` | Days between issue creation and fix |
+| `buggy_docker_version` | Docker Hub image tag for buggy version (optional) |
+| `patched_docker_version` | Docker Hub image tag for patched version (optional) |
+
+### Docker Hub Deployment (Optional)
+
+Some projects publish Docker images to Docker Hub. For these projects, you can specify `buggy_docker_version` and `patched_docker_version` columns with the image tags. This allows Defects4REST to pull pre-built images instead of building from git commits, simplifying deployment.
+
+---
+
+## Step 4: Create Deployment Script (New Projects Only)
+
+If adding bugs to a **new project**, create a deployment script at:
+
+```
+defects4rest/src/deployment_scripts/deploy_<project>.py
+```
+
+### Required Functions
+
+The script must implement three functions:
+
+| Function | Purpose |
+|----------|---------|
+| `main(sha, issue_id)` | Clone repo, checkout SHA, build and start containers |
+| `stop()` | Stop containers without removing volumes |
+| `clean()` | Stop containers and remove all resources |
+
+### Example Structure
 
 ```python
-"""
-<Project Name> Deployment Script
-
-Deploys <Project Name> at specific git commits for bug reproduction.
-"""
-import subprocess
-import os
-import sys
-from defects4rest.src.utils.shell import run, pretty_step, pretty_section
-from defects4rest.src.utils.resources import ensure_temp_project_dir, check_prereq
-from defects4rest.src.utils.git import get_default_branch, sha_exists
-
-REPO_URL = "https://github.com/<org>/<repo>.git"
-PROJECT_NAME = '<project>'
-PROJECT_DIR = str(ensure_temp_project_dir(PROJECT_NAME))
-CONTAINER_NAME = "<project>-container"
-HOST_PORT = "8080"
-
 def main(sha=None, issue_id=None):
-    """Main deployment function."""
-    pretty_section(f"Deploying {PROJECT_NAME} (issue #{issue_id}) at SHA: {sha}")
-
-    # Check prerequisites
-    for tool in ("git", "docker"):
-        check_prereq(tool)
-
-    # Clone repository
-    if os.path.isdir(PROJECT_DIR):
-        pretty_step(f"Removing existing repo at {PROJECT_DIR}")
-        shutil.rmtree(PROJECT_DIR)
-
-    run(["git", "clone", REPO_URL, PROJECT_DIR])
-    os.chdir(PROJECT_DIR)
-
-    # Checkout specific SHA
-    if sha and sha != "latest":
-        if not sha_exists(sha):
-            run(["git", "fetch", "--all", "--tags"])
-        run(["git", "checkout", sha])
-
-    # Build and deploy (customize for your project)
-    # Example: Docker Compose
-    run(["docker-compose", "up", "-d"])
-
-    pretty_section(f"{PROJECT_NAME} is ready at http://localhost:{HOST_PORT}")
+    """Deploy the project at the specified commit."""
+    # 1. Clone repository (or pull if exists)
+    # 2. Checkout the specified SHA
+    # 3. Build and start Docker containers
+    # 4. Wait for service to be ready
+    pass
 
 def stop():
-    """Stop containers."""
-    pretty_section(f"Stopping {PROJECT_NAME}...")
-    run(["docker-compose", "down"], cwd=PROJECT_DIR)
+    """Stop running containers."""
+    pass
 
 def clean():
-    """Clean up deployment."""
-    pretty_section(f"Cleaning {PROJECT_NAME}...")
-    run(["docker-compose", "down", "-v", "--remove-orphans"], cwd=PROJECT_DIR)
+    """Remove all containers, volumes, and networks."""
+    pass
 ```
 
-### Step 6: Create Project README
-
-Create `bug_replication/<project>/README.md` with the following sections:
-
-| Section | Description |
-|---------|-------------|
-| Overview | Brief description of the project |
-| Available Defects | Table with Issue ID, Defect Type, Sub Defect Type, Description, Replication link |
-| Deploying, Managing, and Inspecting | CLI commands for checkout, stop, clean, info |
-| Accessing | Base URL, authentication details |
-| Troubleshooting | Docker logs command |
-| References | Links to project GitHub and documentation |
-
-See existing project READMEs for examples: [netbox](../bug_replication/netbox/README.md)
-
-### Step 7: Register the Project
-
-Update the main README.md to include your project in the Supported Projects table.
+See existing scripts for reference:
+- `deploy_netbox.py`
+- `deploy_mastodon.py`
+- `deploy_dolibarr.py`
 
 ---
 
-## Bug Documentation Format
+## Step 5: Document Reproduction Steps
 
-### Defect Type Categories
+For each bug, create documentation at:
 
-Use these standardized categories:
+```
+bug_replication/<project>/<project>#<issue>/README.md
+```
 
-| Defect Type | Sub Defect Type |
-|-------------|-----------------|
-| **Configuration and Environment Issues (T1)** | Container and Resource Quota Handling Errors (ST1) |
-| | Job Execution and Workflow Configuration Defects (ST2) |
-| | Environment-Specific Behavior and Configuration Bugs (ST3) |
-| **Data Validation and Query Processing Errors (T2)** | Schema and Payload Validation Errors in POST APIs (ST4) |
-| | Query Filter and Search Parameter Handling Errors (ST5) |
-| **Authentication, Authorization, and Session Management Issues (T3)** | Authentication and Token Management Errors (ST6) |
-| | Session, Token, and Account Lifecycle Management Errors (ST7) |
-| **Integration, Middleware, and Runtime Environment Failures (T4)** | Middleware Integration Failures in REST APIs (ST8) |
-| | Process Signal and Grouping Issues in Containerized APIs (ST9) |
-| | Runtime and Dependency Errors (ST10) |
-| **Data Storage, Access, and Volume Errors (T5)** | Volume and File Upload/Access Errors (ST11) |
-| | Database/Table User Access Handling Errors (ST12) |
-| **Distributed Systems and Cluster Failures (T6)** | Index and Cluster Coordination Failures (ST13) |
+### Required Sections
 
-### Patched File Types
+| Section | Content |
+|---------|---------|
+| Description | What the bug is and its impact |
+| GitHub Issue URL | Link to the original issue |
+| Triggering Endpoints | List of affected API endpoints |
+| Triggering Behavior | Step-by-step curl commands to reproduce |
+| Buggy Response | HTTP status and response when bug is present |
+| Expected Response | Correct HTTP status and response |
 
-| Type | Description |
-|------|-------------|
-| `source-file` | Main application code |
-| `test-file` | Test files |
-| `config-file` | Configuration files |
-| `build-file` | Build scripts (Makefile, pom.xml) |
-| `doc-file` | Documentation |
-| `other-file` | Other files |
+### Writing Guidelines
+
+- Include **exact curl commands** that can be copy-pasted
+- Document any **prerequisites** (test data, tokens)
+- Show **actual response bodies** (not just status codes)
+- Enable someone **unfamiliar with the project** to reproduce the bug
+
+See existing documentation: [netbox#18363](../bug_replication/netbox/netbox%2318363/README.md)
 
 ---
 
-## Testing Your Addition
+## Step 6: Add OpenAPI Specification
 
-### 1. Verify CSV Entry
+Create an OpenAPI spec at:
+
+```
+bug_replication/<project>/<project>#<issue>/<project>#<issue>_spec.json
+```
+
+Or YAML format:
+```
+bug_replication/<project>/<project>#<issue>/<project>#<issue>_spec.yaml
+```
+
+The specification should describe the endpoints relevant to reproducing the bug.
+
+---
+
+## Step 7: Update Project README
+
+Add the new bug to the "Available Defects" table in:
+
+```
+bug_replication/<project>/README.md
+```
+
+For new projects, create this README following existing examples: [netbox/README.md](../bug_replication/netbox/README.md)
+
+---
+
+## Step 8: Verify the Bug
+
+Test that the bug is reproducible:
 
 ```bash
+# Verify metadata
 defects4rest info -p <project> -i <issue>
-```
 
-Should display all bug information correctly.
+# Deploy buggy version
+defects4rest checkout -p <project> -i <issue> --buggy --start
 
-### 2. Test Buggy Deployment
+# Run reproduction steps from your README
+# Bug should be present
 
-```bash
-defects4rest checkout -p <project> -i <issue> --buggy
-```
+# Deploy patched version
+defects4rest checkout -p <project> -i <issue> --patched --start
 
-Then reproduce the bug using the curl commands in your README.
+# Run same steps
+# Bug should be fixed
 
-### 3. Test Patched Deployment
-
-```bash
-defects4rest checkout -p <project> -i <issue> --patched
-```
-
-Verify the bug is fixed.
-
-### 4. Test Cleanup
-
-```bash
+# Cleanup
 defects4rest checkout -p <project> -i <issue> --clean
 ```
 
-Verify all containers and volumes are removed.
+---
+
+## Directory Structure
+
+```
+Defects4REST/
+├── defects4rest/
+│   ├── data/defect_data/
+│   │   └── <project>_info.csv          # Bug metadata CSV
+│   └── src/deployment_scripts/
+│       └── deploy_<project>.py         # Deployment automation
+│
+├── bug_replication/
+│   └── <project>/
+│       ├── README.md                    # Project overview
+│       └── <project>#<issue>/
+│           ├── README.md                # Reproduction steps
+│           └── <project>#<issue>_spec.json  # OpenAPI spec
+│
+└── bug_mining_framework/
+    ├── github_issue_processor.py        # Main mining script
+    ├── launch_minebugs.sh               # Batch processing
+    └── mine_bugs.sh                     # SLURM wrapper
+```
 
 ---
 
-## Checklist
+## Troubleshooting
 
-Before submitting your addition, verify:
-
-### CSV File
-- [ ] All required columns are filled
-- [ ] `buggy_sha` points to a commit before the fix
-- [ ] `patch_sha` points to the fix commit(s)
-- [ ] `patched_files` lists all modified files
-- [ ] `patched_file_types` uses standard categories
-
-### Bug README
-- [ ] Description clearly explains the bug
-- [ ] GitHub issue URL is correct
-- [ ] Triggering endpoints are listed
-- [ ] Step-by-step reproduction with curl commands
-- [ ] Buggy response is documented
-- [ ] Expected response is documented
-
-### Project README (if new project)
-- [ ] Overview describes the project
-- [ ] Available Defects table is complete
-- [ ] Deployment commands are documented
-- [ ] Access credentials are documented
-- [ ] Troubleshooting section exists
-
-### Deployment Script (if new project)
-- [ ] `main(sha, issue_id)` function implemented
-- [ ] `stop()` function implemented
-- [ ] `clean()` function implemented
-- [ ] Handles both buggy and patched deployments
-
-### Testing
-- [ ] `defects4rest info` shows correct information
-- [ ] Buggy version deploys and bug is reproducible
-- [ ] Patched version deploys and bug is fixed
-- [ ] Cleanup removes all resources
+| Problem | Solution |
+|---------|----------|
+| Deployment fails | Check Docker logs: `docker logs <container>` |
+| Bug not reproducible | Verify correct SHA and any required setup |
+| CSV not loading | Check file path and column format |
+| Service won't start | Check port conflicts: `docker ps` |
 
 ---
-
-## Getting Help
-
-If you need help adding a new bug:
-
-1. Check existing bug READMEs for examples
-2. Review deployment scripts for similar projects
-3. Open an issue on GitHub with questions
 
 ## See Also
 
-- [Main README](../README.md)
+- [Bug Mining Framework](../bug_mining_framework/README.md) — Automated bug extraction from GitHub
+- [Main README](../README.md) — Project overview and usage
