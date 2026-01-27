@@ -1,4 +1,4 @@
-# Defects4REST Version 1.0
+# Defects4REST Version 1.0.0
 
 A comprehensive benchmark and bug mining framework for systematically deploying, testing, and analyzing reproducible real-world bugs in REST API applications.
 The benchmark includes 110 defects across 12 real-world open-source projects along with deployment scripts, replication steps, and detailed metadata.
@@ -143,12 +143,21 @@ bug_replication/<project>/<project>#<issue>/<project>#<issue>_spec.json/yaml
 | | Database/Table User Access Handling Errors (ST12) |
 | **Distributed Systems and Cluster Failures (T6)** | Index and Cluster Coordination Failures (ST13) |
 
+## Versioning
+
+Defects4REST uses a semantic versioning scheme (`major`.`minor`.`patch`):
+
+| Change | `major` | `minor` | `patch` |
+|--------|:-------:|:-------:|:-------:|
+| Addition/Deletion of projects | X | | |
+| Addition of new bugs to existing projects | | X | |
+| Fixes and documentation changes | | | X |
+
 ## Contributing
 
 We welcome contributions! See our guides:
 
 - [Adding New Bugs](./docs/ADDING_BUGS.md) — Step-by-step guide to add new defects
-
 
 ## License
 
