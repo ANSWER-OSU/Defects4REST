@@ -21,6 +21,17 @@
 
 """NocoDB API script for creating test data for issues."""
 import requests
+from defects4rest.src.utils.shell import pretty_section, pretty_step
+
+def create_account(port, endpoint):
+    """Create a user account."""
+    pretty_step(f"Creating a user account...")
+    credentials = requests.post(f"http://localhost:{port}/{endpoint}", json={"email":"admin@admin.com", "password":"@Admin123"})
+    if credentials.status_code == 200 or credentials.status_code == 201:
+        pretty_step("   Account created.")
+        return credentials
+    else:
+        pretty_step(f"Error: Received status code {credentials.text}")
 
 def issue_2242(args):
     """Create test project with City and Country tables and 1000 linked records."""
@@ -33,28 +44,24 @@ def issue_2242(args):
         'Accept': 'application/json'
     }
 
-    print("\nRunning issue#2242 prerequisites...")
+    pretty_section("Running issue#2242 prerequisites...")
 
     # Sign up and get auth token
-    print(f"Signing up...")
-    credentials = requests.post(f"http://localhost:{PORT}/api/v1/db/auth/user/signup", json={"email":"admin@admin.com", "password":"@Admin123"})
-    if credentials.status_code == 200 or credentials.status_code == 201:
-        print("Signed up.")
-    else:
-        print(f"Error: Received status code {credentials.text}")
+    pretty_step(f"Signing up...")
+    credentials = create_account(PORT, "api/v1/db/auth/user/signup")
 
     headers["xc-auth"] = credentials.json().get("token")
 
     # Create project
-    print(f"Creating a project...")
+    pretty_step(f"Creating a project...")
     project = requests.post(f"http://localhost:{PORT}/api/v1/db/meta/projects/", json={"title":PROJECT_NAME}, headers=headers)
     if project.status_code == 200 or project.status_code == 201:
-        print("Project created.")
+        pretty_step("Project created.")
     else:
-        print(f"Error: Received status code {project.text}")
+        pretty_step(f"Error: Received status code {project.text}")
 
     baseId = project.json().get("id")
-    print(f"Project ID: {baseId}\n")
+    pretty_step(f"  Project ID: {baseId}")
 
     # Create City table
     schemaCity = {
@@ -66,17 +73,17 @@ def issue_2242(args):
         ]
     }
 
-    print(f"Creating Table A: City...")
+    pretty_step(f"Creating Table A: City...")
     tableCity = requests.post(f"http://localhost:{PORT}/api/v1/db/meta/projects/{baseId}/tables/", json=schemaCity, headers=headers)
     if project.status_code == 200 or project.status_code == 201:
-        print("Table: City created.")
+        pretty_step("   Table: City created.")
     else:
-        print(f"Error: Received status code {project.status_code}")
+        pretty_step(f"  Error: Received status code {project.status_code}")
     tableCity_data = tableCity.json()
-    print(f"Table-City ID: {tableCity_data.get({id})}\n")
+    pretty_step(f"  Table-City ID: {tableCity_data.get('id')}")
 
     # Create Country table
-    print(f"Creating Table B: Country...")
+    pretty_step(f"Creating Table B: Country...")
     schemaCountry = schemaCountry = {
         "title": "Country",
         "table_name": "Country",
@@ -87,14 +94,14 @@ def issue_2242(args):
     }
     tableCountry = requests.post(f"http://localhost:{PORT}/api/v1/db/meta/projects/{baseId}/tables/", json=schemaCountry, headers=headers)
     if project.status_code == 200 or project.status_code == 201:
-        print("Table: Country created.")
+        pretty_step("   Table: Country created.")
     else:
-        print(f"Error: Received status code {project.text}")
+        pretty_step(f"  Error: Received status code {project.text}")
     tableCountry_data = tableCountry.json()
-    print(f"Table-Country ID: {tableCountry_data.get('id')}\n")
+    pretty_step(f"  Table-Country ID: {tableCountry_data.get('id')}")
 
     # Create linked record fields between tables
-    print(f"Creating a Linked Record Fields...")
+    pretty_step(f"Creating a Linked Record Fields...")
 
     linkedCity = {
         "title": "countryRead",
@@ -116,30 +123,79 @@ def issue_2242(args):
 
     requests.post(f"http://localhost:{PORT}/api/v1/db/meta/tables/{tableCity_data.get('id')}/columns/", json=linkedCountry, headers=headers)
 
-    print("Linked Record fields created.\n")
+    pretty_step("   Linked Record fields created.")
 
     # Populate 1000 city records
-    print("Populating 1000 records for City...")
+    pretty_step("Populating 1000 records for City...")
     cityRecords = []
     for i in range(1,1000):
         cityRecords.append({"Title": f"City {i}"})
     requests.post(f"http://localhost:{PORT}/api/v1/db/data/bulk/noco/{PROJECT_NAME}/City/", json=cityRecords, headers=headers)
-    print("City records populated.\n")
+    pretty_step("   City records populated.")
 
     # Populate country records
-    print("Populating records for Country...")
+    pretty_step("Populating records for Country...")
     requests.post(f"http://localhost:{PORT}/api/v1/db/data/bulk/noco/{PROJECT_NAME}/Country/", json=[{"Title": "Country 1"}, {"Title": "Country 2"}], headers=headers)
-    print("Country records populated.\n")
+    pretty_step("   Country records populated.")
 
     # Create linked records between cities and countries
-    print("Populating linked records...")
+    pretty_step("Populating linked records...")
     for i in range(1,1000):
         requests.post(f"http://localhost:{PORT}/api/v1/db/data/noco/{PROJECT_NAME}/City/{i}/mm/countryRead/1", headers=headers)
 
     for i in range(1,1000):
         requests.post(f"http://localhost:{PORT}/api/v1/db/data/noco/{PROJECT_NAME}/Country/1/hm/cityList/{i}", headers=headers)
 
-    print("Linked records populated.\n")
+    pretty_step("   Linked records populated.")
 
-    print("Prequisites done.")
-    print("You can now move to Triggering Behavior.\n")
+    pretty_step("Prequisites done.")
+    pretty_step("You can now move to Triggering Behavior.\n")
+    pretty_step("Use the following credentials to sign in:")
+    pretty_step("  Super User: admin@admin.com")
+    pretty_step("  Password: @Admin123")
+
+def issue_1756(args):
+    port = args["port"]
+
+    request = create_account(port, "api/v1/db/auth/user/signup")
+
+    pretty_step("Use the following credentials to sign in:")
+    pretty_step("  Super User: admin@admin.com")
+    pretty_step("  Password: @Admin123")
+
+def issue_1866(args):
+    port = args["port"]
+
+    request = create_account(port, "api/v1/db/auth/user/signup")
+
+    pretty_step("Use the following credentials to sign in:")
+    pretty_step("  Super User: admin@admin.com")
+    pretty_step("  Password: @Admin123")
+
+def issue_1981(args):
+    port = args["port"]
+
+    request = create_account(port, "api/v1/db/auth/user/signup")
+
+    pretty_step("Use the following credentials to sign in:")
+    pretty_step("  Super User: admin@admin.com")
+    pretty_step("  Password: @Admin123")
+
+def issue_2776(args):
+    port = args["port"]
+
+    request = create_account(port, "api/v1/db/auth/user/signup")
+
+    pretty_step("Use the following credentials to sign in:")
+    pretty_step("  Super User: admin@admin.com")
+    pretty_step("  Password: @Admin123")
+
+def issue_7535(args):
+    port = args["port"]
+
+    request = create_account(port, "api/v1/auth/user/signup")
+
+    pretty_step("Use the following credentials to sign in:")
+    pretty_step("  Super User: admin@admin.com")
+    pretty_step("  Password: @Admin123")
+
