@@ -11,12 +11,12 @@ https://github.com/nocodb/nocodb/issues/1866
 - `/api/v1/db/data/noco/{projectName}/{tableName}/views/{tableName}`
 
 ## Prerequisites
-**Step 1.** Signup
+**Step 1.** Signin as a super user (admin)
 ```
-curl -X 'POST' 'http://localhost:8081/api/v1/db/auth/user/signup' \
--H "Content-Type: application/json" \
--H 'accept: application/json' \
--d '{"email":"admin@admin.com","password":"@Admin123","ignore_subscribe":true}' | jq .
+curl 'http://localhost:8081/api/v1/db/auth/user/signin' \
+  -H 'Accept: application/json, text/plain, */*' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"email":"admin@admin.com","password":"@Admin123"}'
 ```
 **Response:** HTTP 200.
 ```

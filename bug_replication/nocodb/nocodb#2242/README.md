@@ -9,17 +9,19 @@ https://github.com/nocodb/nocodb/issues/2242
 ## Triggering Endpoint
 `/api/v1/db/data/noco/{projectName}/{tableName}/{rowId}`
 
-## Setup
-**Step 1.** Create Table A and B
-
-**Step 2.** Populate Table A with 1000 rows
-
-**Step 3.** In Table B, create a `hasMany` column to Table A
-
-**Step 4.** Populate `hasMany` column in Table B with 1000 rows
-
 ## Triggering Behavior
-**Step 1.** Retrieve the data for a table's row with 1000 `hasMany` values
+**Step 1.** Signin as a super user (admin)
+```
+curl 'http://localhost:8081/api/v1/db/auth/user/signin' \
+  -H 'Accept: application/json, text/plain, */*' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"email":"admin@admin.com","password":"@Admin123"}'
+```
+**Response:** HTTP 200
+```
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfazUxcXE0MnUzaTN1eGgiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE3NjUzODA5MjV9.2M6aW09b6PAr8uSA11qDZOYpRMVyR3GtkAsAS9W-OeU"}
+```
+**Step 2.** Retrieve the data for a table's row with 1000 `hasMany` values
 ```
 curl -X 'GET' \
   'http://localhost:8080/api/v1/db/data/noco/Buggy2242/Country/1' \
@@ -27,7 +29,7 @@ curl -X 'GET' \
   -H 'xc-auth: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfazUxcXE0MnUzaTN1eGgiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE3NjUzODA5MjV9.2M6aW09b6PAr8uSA11qDZOYpRMVyR3GtkAsAS9W-OeU'
 ```
 ## Buggy Response:
-HTTP 200. Data is truncated
+HTTP 200. Data is truncated up to 20 only, even if pagination is not requested.
 ```
 {
   "ID": 1,
