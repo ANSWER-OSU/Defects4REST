@@ -208,7 +208,7 @@ defects4rest info -p strapi -i 12345
 
 The tool automatically handles GitHub API rate limits:
 
-- Detects 401/403 errors
+- Detects HTTP 401/HTTP 403 errors
 - Saves checkpoint with current progress
 - Waits until rate limit resets
 - Resumes from checkpoint on restart
