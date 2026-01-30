@@ -104,10 +104,10 @@ The CLI provides two commands: `info` to view bug details and `checkout` to depl
 defects4rest info -p <project> -i <issue>
 
 # Deploy buggy version
-defects4rest checkout -p <project> -i <issue> --buggy --start
+defects4rest checkout -p <project> -i <issue> --buggy
 
 # Deploy patched version
-defects4rest checkout -p <project> -i <issue> --patched --start
+defects4rest checkout -p <project> -i <issue> --patched
 
 # Cleanup
 defects4rest checkout -p <project> -i <issue> --clean
