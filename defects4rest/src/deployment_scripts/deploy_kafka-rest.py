@@ -41,18 +41,11 @@ from defects4rest.src.utils.issue_metadata import run_issue_hook
 
 REPO_URL = "https://github.com/confluentinc/kafka-rest.git"
 
-# Some bugs require patched versions from forks
-PATCHED_SHAS = {
-    "4391b34bbc4caadc5aede4c4493bb918b74031a2": {
-        "repo": "https://github.com/luinix/kafka-rest.git",
-        "ref": "4391b34bbc4caadc5aede4c4493bb918b74031a2",
-    }
-}
 PROJECT_NAME = 'kafka-rest'
 CSV_PATH = data_csv(PROJECT_NAME)
 PROJECT_DIR = str(ensure_temp_project_dir(PROJECT_NAME))
 DOCKER_ROOT = os.path.join(PROJECT_DIR, f"{PROJECT_NAME}_docker")
-REPO_DIR = os.path.join(PROJECT_DIR, f"{PROJECT_NAME}-src")
+REPO_DIR = os.path.join(DOCKER_ROOT, f"{PROJECT_NAME}-src")
 
 # Container names
 KAFKA_REST_CONTAINER = "kafka-rest"
@@ -402,37 +395,9 @@ def wait_for_server(url, timeout=60):
 
 def build_kafka(build_mode, docker_tag: str | None, compose_cmd: None, issue_id, sha):
     """Build and deploy Kafka REST in manual or image mode."""
+
     if build_mode == "manual":
         pretty_section(f"Building kafka-rest (issue number {issue_id}) manually...")
-
-        # Remove existing repo
-        if os.path.isdir(REPO_DIR):
-            pretty_step(f"[main] Removing existing repo at {REPO_DIR} for a clean checkout...")
-            shutil.rmtree(REPO_DIR)
-
-        # Check for patched fork
-        patched = PATCHED_SHAS.get(sha)
-
-        if patched:
-            repo_url = patched["repo"]
-            ref = patched["ref"]
-            print(f"[INFO] Using patched fork: {repo_url} ({ref})")
-        else:
-            repo_url = REPO_URL
-            ref = sha
-
-        # Clone and checkout
-        pretty_step(f"[main] Cloning repo into {REPO_DIR}")
-        run(["git", "clone", repo_url, REPO_DIR])
-
-        pretty_step("[main] Fetching all refs...")
-        run(["git", "fetch", "--all", "--tags"], cwd=REPO_DIR)
-
-        if ref and ref.lower() != "latest":
-            pretty_step(f"[main] Checking out {ref}")
-            run(["git", "checkout", ref], cwd=REPO_DIR)
-        else:
-            pretty_step("[main] Using default branch HEAD")
 
         actual = current_sha(REPO_DIR)
         pretty_step(f"[main] Building commit: {actual}")
@@ -458,10 +423,28 @@ def build_kafka(build_mode, docker_tag: str | None, compose_cmd: None, issue_id,
 
 def main(sha: str = "latest", issue_id=None):
     """Main deployment function for Kafka REST."""
-    pretty_section(f"Deploying Kafa-rest (issue number {issue_id}) at SHA: {sha}")
+    pretty_section(f"Deploying Kafka-rest (issue number {issue_id}) at SHA: {sha}")
     for tool in ("git", "docker"):
         check_prereq(tool)
     compose_cmd = find_compose_cmd()
+
+    # Remove existing repo
+    if os.path.isdir(REPO_DIR):
+        pretty_step(f"[main] Removing existing repo at {REPO_DIR} for a clean checkout...")
+        shutil.rmtree(REPO_DIR)
+
+    # Clone and checkout
+    pretty_step(f"[main] Cloning repo into {REPO_DIR}")
+    run(["git", "clone", REPO_URL, REPO_DIR])
+
+    pretty_step("[main] Fetching all refs...")
+    run(["git", "fetch", "--all", "--tags"], cwd=REPO_DIR)
+
+    if sha and sha.lower() != "latest":
+        pretty_step(f"[main] Checking out {sha}")
+        run(["git", "checkout", sha], cwd=REPO_DIR)
+    else:
+        pretty_step("[main] Using default branch HEAD")
 
     # Handle SHA lookup
     if sha == "latest":
@@ -498,9 +481,15 @@ def stop():
     if not os.path.isdir(DOCKER_ROOT):
         pretty_step(f"[stop] No DOCKER_ROOT at {DOCKER_ROOT}, nothing to stop.")
         return
-    run(compose_cmd + ["down"], cwd=DOCKER_ROOT)
-    pretty_step("[stop] docker compose down completed.")
+    run(compose_cmd + ["stop"], cwd=DOCKER_ROOT)
+    pretty_step("[stop] docker compose stop completed.")
 
 def clean():
     """Complete cleanup of Kafka REST deployment."""
-    stop()
+    pretty_section("Cleaning kafka-rest containers …")
+    compose_cmd = find_compose_cmd()
+    if not os.path.isdir(DOCKER_ROOT):
+        pretty_step(f"[clean] No DOCKER_ROOT at {DOCKER_ROOT}, nothing to clean.")
+        return
+    run(compose_cmd + ["down"], cwd=DOCKER_ROOT)
+    pretty_step("[clean] docker compose down completed.")
