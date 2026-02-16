@@ -10,11 +10,11 @@ Signal-CLI REST API is a dockerized REST API wrapper around signal-cli, allowing
 
 The table below shows the available defects including the defect type, sub defect type, description of each defect and a link to the steps for reproducing each defect.
 
-| Issue ID # | Defect Type | Sub Defect Type | Description | Replication |
-|:--:|--|--|--|--|
-| [387](https://github.com/bbernhard/signal-cli-rest-api/issues/387) | Runtime and Exception Handling Errors | Runtime Errors and Exception Handling | Group deletion via the REST API in a containerized environment returns 500 error despite the operation being valid. | [Replication steps](./signal-cli-rest-api%23387/README.md) |
-| [654](https://github.com/bbernhard/signal-cli-rest-api/issues/654) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | The notify_self query parameter is not handled consistently for direct messages versus group chats resulting in unexpected behavior. | [Replication steps](./signal-cli-rest-api%23654/README.md) |
-| [657](https://github.com/bbernhard/signal-cli-rest-api/issues/657) | Configuration and Environment Issues | Environment-Specific Behavior and Configuration Bugs | Group description is missing from API responses only in the Docker container environment despite being present in the official documentation. | [Replication steps](./signal-cli-rest-api%23657/README.md) |
+| S/N | Issue ID # | Defect Type | Sub Defect Type | Description | Replication |
+|----:|:----------:|-------------|----------------|-------------|-------------|
+| 1 | [387](https://github.com/bbernhard/signal-cli-rest-api/issues/387) | Runtime and Exception Handling Errors | Runtime Errors and Exception Handling | Group deletion via the REST API in a containerized environment returns 500 error despite the operation being valid. | [Replication steps](./signal-cli-rest-api%23387/README.md) |
+| 2 | [654](https://github.com/bbernhard/signal-cli-rest-api/issues/654) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | The notify_self query parameter is not handled consistently for direct messages versus group chats resulting in unexpected behavior. | [Replication steps](./signal-cli-rest-api%23654/README.md) |
+| 3 | [657](https://github.com/bbernhard/signal-cli-rest-api/issues/657) | Configuration and Environment Issues | Environment-Specific Behavior and Configuration Bugs | Group description is missing from API responses only in the Docker container environment despite being present in the official documentation. | [Replication steps](./signal-cli-rest-api%23657/README.md) |
 
 ## Deploying, Managing, and Inspecting a Defect (Signal-CLI REST API #387)
 
@@ -24,10 +24,10 @@ Run the following commands in your terminal:
 
 ```bash
 # 1. Deploy the buggy version of the issue
-defects4rest checkout -p signal-cli-rest-api -i 387 --buggy --start
+defects4rest checkout -p signal-cli-rest-api -i 387 --buggy 
 
 # 2. Deploy the patched version of the issue
-defects4rest checkout -p signal-cli-rest-api -i 387 --patched --start
+defects4rest checkout -p signal-cli-rest-api -i 387 --patched
 
 # 3. Stop running containers
 defects4rest checkout -p signal-cli-rest-api -i 387 --stop
