@@ -41,6 +41,7 @@ from defects4rest.src.api_dep_setup import nocodb as nocodb_issues
 
 # Configuration
 PROJECT_NAME = 'nocodb'
+REPO_URL = "https://github.com/nocodb/nocodb.git"
 PROJECT_DIR =  str(ensure_temp_project_dir(PROJECT_NAME))
 DATA_DIR = PROJECT_DIR
 CSV_PATH = data_csv(PROJECT_NAME)
@@ -149,6 +150,25 @@ def wait_for_server(url, timeout=60):
 def main(sha=None,issue_id=None):
     """Main deployment function for NocoDB."""
     pretty_section(f"Deploying Nocodb (isuue number {issue_id}) at SHA: {sha}")
+
+    # Remove existing repo
+    if os.path.isdir(PROJECT_DIR):
+        pretty_step(f"[main] Removing existing repo at {PROJECT_DIR} for a clean checkout...")
+        shutil.rmtree(PROJECT_DIR)
+
+    # Clone and checkout
+    pretty_step(f"[main] Cloning repo into {PROJECT_DIR}")
+    run(["git", "clone", REPO_URL, PROJECT_DIR])
+
+    pretty_step("[main] Fetching all refs...")
+    run(["git", "fetch", "--all", "--tags"], cwd=PROJECT_DIR)
+
+    if sha and sha.lower() != "latest":
+        pretty_step(f"[main] Checking out {sha}")
+        run(["git", "checkout", sha], cwd=PROJECT_DIR)
+    else:
+        pretty_step("[main] Using default branch HEAD")
+
     check_prereq("docker")
 
     if not sha:

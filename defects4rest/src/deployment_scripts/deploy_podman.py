@@ -144,7 +144,7 @@ def clean():
 
     # Remove containers
     pretty_step("Removing containers...")
-    subprocess.run(f"podman ps -a --format '{{{{.Names}}}}' | grep '^{prefix}' | xargs -r podman rm -f", shell=True, check=False)
+    subprocess.run(f"podman ps -a --format '{{{{.Names.}}}}' | grep '^{prefix}' | xargs -r podman rm -f", shell=True, check=False)
 
     # Remove images
     pretty_step("Removing images...")
@@ -161,7 +161,11 @@ def clean():
     pretty_section("Podman cleanup complete.")
 
 def stop():
-    clean()
+    prefix = "d4rest_"
+
+    # Remove containers
+    pretty_step("Stopping containers...")
+    subprocess.run(f"podman ps -a --format '{{{{.Names.}}}}' | grep '^{prefix}' | xargs -r podman stop", shell=True, check=False)
 
 if __name__ == "__main__":
     main()
