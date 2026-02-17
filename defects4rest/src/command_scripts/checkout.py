@@ -77,5 +77,5 @@ def run(project_name, issue_id=None, action="deploy", buggy=False, patched=None)
             print(f"'clean' function not implemented in {module_name}")
 
     else:
-        print("No action taken. Use --start, --stop, or --clean.")
+        print("No action taken. Use --stop or --clean.")
 

@@ -21,7 +21,6 @@ defects4rest checkout -p <project> -i <issue_id> [OPTIONS]
 |--------|-------------|
 | `--buggy` | Deploy the buggy version |
 | `--patched` | Deploy the patched version |
-| `--start` | Start deployment (implied with `--buggy` or `--patched`) |
 | `--stop` | Stop running containers |
 | `--clean` | Stop and remove all containers, volumes, networks |
 
@@ -55,8 +54,8 @@ defects4rest checkout -p netbox -i 18363 --clean
 ## Example Usage
 
 ```bash
-# 1. Deploy buggy version of netbox project corresponding to issue# 18363 using the following command. The service will be accessible at http://
-defects4rest checkout -p netbox -i 18363 --buggy --start
+# 1. Deploy buggy version of netbox project corresponding to issue#18363 using the following command. The service will be accessible at http://
+defects4rest checkout -p netbox -i 18363 --buggy
 
 # 2. Execute the bug replication steps (see  )
 curl -X POST "http://localhost:8080/api/dcim/mac-addresses/" ...
@@ -65,7 +64,7 @@ curl -X POST "http://localhost:8080/api/dcim/mac-addresses/" ...
 defects4rest checkout -p netbox -i 18363 --stop
 
 # 4. Deploy patched version of netbox project corresponding to issue# 18363 using the following command. The service will be accessible at http://
-defects4rest checkout -p netbox -i 18363 --patched --start
+defects4rest checkout -p netbox -i 18363 --patched
 
 # 5. Verify fix by re-executing the bug replication steps. 
 curl -X POST "http://localhost:8080/api/dcim/mac-addresses/" ...

@@ -10,11 +10,11 @@ Kafka REST Proxy is a service that exposes a Kafka cluster through a RESTful HTT
 The table below shows the available defects including the defect type,sub defect type,  a description of each defect, and a link to the steps for replicating each defect.
 
 
-| Issue ID # | Defect Type | Sub Defect Type | Description | Replication |
-|:--:|--|--|--|--|
-| [37](https://github.com/confluentinc/kafka-rest/issues/37) | Integration, Middleware, and Runtime Environment Failures | Middleware Integration Failures in REST APIs | API fails to handle a specific exception from the underlying consumer connector resulting in an incorrect HTTP 500 response. | [Replication steps](./kafka-rest%2337/README.md) |
-| [341](https://github.com/confluentinc/kafka-rest/issues/341) | Distributed Systems and Clustering Failures | Index and Cluster Coordination Failures | Multiple consumer instances in the same group experience long delays in message reads indicating issues with partition assignment or group coordination in the distributed system. | [Replication steps](./kafka-rest%23341/README.md) |
-| [475](https://github.com/confluentinc/kafka-rest/issues/475) | Distributed Systems and Clustering Failures | Query Filter and Search Parameter Handling Errors | GET request with offset and count parameters returns incorrect messages when topic data is compressed indicating improper handling of query parameters with compressed data. | [Replication steps](./kafka-rest%23725/README.md) |
+| S/N | Issue ID # | Defect Type | Sub Defect Type | Description | Replication |
+|----:|:---------:|-------------|-----------------|-------------|-------------|
+| 1  | [37](https://github.com/confluentinc/kafka-rest/issues/37)  | Integration, Middleware, and Runtime Environment Failures | Middleware Integration Failures in REST APIs | API fails to handle a specific exception from the underlying consumer connector resulting in an incorrect HTTP 500 response. | [Replication steps](./kafka-rest%2337/README.md) |
+| 2  | [341](https://github.com/confluentinc/kafka-rest/issues/341) | Distributed Systems and Clustering Failures | Index and Cluster Coordination Failures | Multiple consumer instances in the same group experience long delays in message reads indicating issues with partition assignment or group coordination in the distributed system. | [Replication steps](./kafka-rest%23341/README.md) |
+| 3  | [475](https://github.com/confluentinc/kafka-rest/issues/475) | Distributed Systems and Clustering Failures | Query Filter and Search Parameter Handling Errors | GET request with offset and count parameters returns incorrect messages when topic data is compressed indicating improper handling of query parameters with compressed data. | [Replication steps](./kafka-rest%23725/README.md) |
 
 
 
@@ -26,10 +26,10 @@ Run the following commands in your terminal:
 
 ```bash
 # 1. Deploy the buggy version of the issue
-defects4rest checkout -p kafka-rest -i 475 --buggy --start
+defects4rest checkout -p kafka-rest -i 475 --buggy 
 
 # 2. Deploy the patched version of the issue 
-defects4rest checkout -p kafka-rest -i 475 --patched --start
+defects4rest checkout -p kafka-rest -i 475 --patched
 
 # 3. Stop running containers
 defects4rest checkout -p kafka-rest -i 475 --stop
@@ -67,4 +67,5 @@ Ensure that the required ports are free and that no conflicting services are run
 ## References
 
 * [Kafka REST GitHub Repository](https://github.com/confluentinc/kafka-rest)
+
 

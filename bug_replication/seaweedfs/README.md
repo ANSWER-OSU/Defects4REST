@@ -45,17 +45,17 @@ This collection of defects covers volume allocation, file access, payload valida
 
 The table below shows the available defects including the defect type, sub defects type, a description of each defect, and a link to the steps for replicating each defect.
 
-|                         Issue ID #                         | Defect Type          | Sub Defect Type                                   | Description                                                                                                                                                                   | Replication                                       |
-| :--------------------------------------------------------: | -------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-|  [913](https://github.com/seaweedfs/seaweedfs/issues/913)  | Configuration and Environment Issues  | Container and Resource Quota Handling Errors      | API fails to allocate all requested volumes and reports inconsistent free volume counts indicating issues with resource quota enforcement.                                    | [Replication Steps](./seaweedfs%23913/README.md)  |
-| [1776](https://github.com/seaweedfs/seaweedfs/issues/1776) | Data Validation and Query Processing Errors | Volume and File Upload/Access Errors              | DELETE request to a nonexistent file returns 404 instead of the S3-specified 204 causing file operation compatibility issues.                                                 | [Replication Steps](./seaweedfs%231776/README.md) |
-| [4088](https://github.com/seaweedfs/seaweedfs/issues/4088) | Data Validation and Query Processing Errors       | Volume and File Upload/Access Errors              | The master server returns 404 Not Found when accessing files on a read-only volume indicating a failure in file access operations after the volume state changes.             | [Replication Steps](./seaweedfs%234088/README.md) |
-| [4270](https://github.com/seaweedfs/seaweedfs/issues/4270) | Data Validation and Query Processing Errors        | Volume and File Upload/Access Errors              | API returns 500 Internal Server Error instead of 409 Conflict when attempting to create a directory that already exists.                                                      | [Replication Steps](./seaweedfs%234270/README.md) |
-| [5155](https://github.com/seaweedfs/seaweedfs/issues/5155) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | The API response is malformed and missing the required VersionConfiguration node causing clients to fail parsing the response.                                                | [Replication Steps](./seaweedfs%235155/README.md) |
-| [5213](https://github.com/seaweedfs/seaweedfs/issues/5213) | Distributed Systems and Clustering Failures | Index and Cluster Coordination Failures           | Timeouts occur during /dir/assign requests specifically when the master initiates volume growth indicating issues with cluster coordination during dynamic volume assignment. | [Replication Steps](./seaweedfs%235213/README.md) |
-| [5864](https://github.com/seaweedfs/seaweedfs/issues/5864) | Data Storage, Access, and Volume Errors | Volume and File Upload/Access Errors              | When the webdav service stops an existing file returns a 404 error indicating a file access issue rather than a true file absence.                                            | [Replication Steps](./seaweedfs%235864/README.md) |
-| [6497](https://github.com/seaweedfs/seaweedfs/issues/6497) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | The API allows creation of a bucket with an invalid name which leads to internal errors and an unremovable resource.                                                          | [Replication Steps](./seaweedfs%236497/README.md) |
-| [6576](https://github.com/seaweedfs/seaweedfs/issues/6576) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | SeaweedFS does not support the x-id query parameter emitted by AWS SDKs causing issues with presigned requests.                                                               | [Replication Steps](./seaweedfs%236576/README.md) |
+| S/N | Issue ID # | Defect Type | Sub Defect Type | Description | Replication |
+|----:|:----------:|-------------|----------------|-------------|-------------|
+| 1 | [913](https://github.com/seaweedfs/seaweedfs/issues/913) | Configuration and Environment Issues | Container and Resource Quota Handling Errors | API fails to allocate all requested volumes and reports inconsistent free volume counts indicating issues with resource quota enforcement. | [Replication Steps](./seaweedfs%23913/README.md) |
+| 2 | [1776](https://github.com/seaweedfs/seaweedfs/issues/1776) | Data Validation and Query Processing Errors | Volume and File Upload/Access Errors | DELETE request to a nonexistent file returns 404 instead of the S3-specified 204 causing file operation compatibility issues. | [Replication Steps](./seaweedfs%231776/README.md) |
+| 3 | [4088](https://github.com/seaweedfs/seaweedfs/issues/4088) | Data Validation and Query Processing Errors | Volume and File Upload/Access Errors | The master server returns 404 Not Found when accessing files on a read-only volume indicating a failure in file access operations after the volume state changes. | [Replication Steps](./seaweedfs%234088/README.md) |
+| 4 | [4270](https://github.com/seaweedfs/seaweedfs/issues/4270) | Data Validation and Query Processing Errors | Volume and File Upload/Access Errors | API returns 500 Internal Server Error instead of 409 Conflict when attempting to create a directory that already exists. | [Replication Steps](./seaweedfs%234270/README.md) |
+| 5 | [5155](https://github.com/seaweedfs/seaweedfs/issues/5155) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | The API response is malformed and missing the required VersionConfiguration node causing clients to fail parsing the response. | [Replication Steps](./seaweedfs%235155/README.md) |
+| 6 | [5213](https://github.com/seaweedfs/seaweedfs/issues/5213) | Distributed Systems and Clustering Failures | Index and Cluster Coordination Failures | Timeouts occur during /dir/assign requests specifically when the master initiates volume growth indicating issues with cluster coordination during dynamic volume assignment. | [Replication Steps](./seaweedfs%235213/README.md) |
+| 7 | [5864](https://github.com/seaweedfs/seaweedfs/issues/5864) | Data Storage, Access, and Volume Errors | Volume and File Upload/Access Errors | When the webdav service stops an existing file returns a 404 error indicating a file access issue rather than a true file absence. | [Replication Steps](./seaweedfs%235864/README.md) |
+| 8 | [6497](https://github.com/seaweedfs/seaweedfs/issues/6497) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | The API allows creation of a bucket with an invalid name which leads to internal errors and an unremovable resource. | [Replication Steps](./seaweedfs%236497/README.md) |
+| 9 | [6576](https://github.com/seaweedfs/seaweedfs/issues/6576) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | SeaweedFS does not support the x-id query parameter emitted by AWS SDKs causing issues with presigned requests. | [Replication Steps](./seaweedfs%236576/README.md) |
 
 
 
@@ -68,10 +68,10 @@ Run the following commands in your terminal:
 
 ```bash
 # 1. Deploy the buggy version of the issue
-defects4rest checkout -p seaweedfs -i 913 --buggy --start
+defects4rest checkout -p seaweedfs -i 913 --buggy 
 
 # 2. Deploy the patched version of the issue
-defects4rest checkout -p seaweedfs -i 913 --patched --start
+defects4rest checkout -p seaweedfs -i 913 --patched
 
 # 3. Stop running containers
 defects4rest checkout -p seaweedfs -i 913 --stop

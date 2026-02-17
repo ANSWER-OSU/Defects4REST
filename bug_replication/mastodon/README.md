@@ -10,13 +10,13 @@ Mastodon is a free, open-source decentralized social networking platform. It pro
 
 The table below shows the available defects including the defect type, sub defect type, description of each defect and a link to the steps for reproducing each defect.
 
-| Issue ID # | Defect Type | Sub Defect Type | Description | Replication |
-|:--:|--|--|--|--|
-| [28381](https://github.com/mastodon/mastodon/issues/28381) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | The API returns a 500 error due to an ambiguous column in the SQL ORDER BY clause triggered by specific query parameters. | [Replication steps](./mastodon%2328381/README.md) |
-| [29071](https://github.com/mastodon/mastodon/issues/29071) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | The API returns Suggestion.source as an array of strings instead of the documented string type causing schema decoding failures for clients. | [Replication steps](./mastodom%2329071/README.md) |
-| [30039](https://github.com/mastodon/mastodon/issues/30039) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | The Idempotency-Key header is ignored when scheduling posts, allowing duplicate scheduled posts to be created. | [Replication steps](./mastodon%2330039/README.md) |
-| [30103](https://github.com/mastodon/mastodon/issues/30103) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | Creating a new push subscription doesn't properly delete the previous subscription, leading to multiple active subscriptions. | [Replication steps](./mastodon%2330103/README.md) |
-| [33357](https://github.com/mastodon/mastodon/issues/33357) | Configuration and Environment Issues | Environment-Specific Behavior and Configuration Bugs | The API returns incorrect last usage dates for featured hashtags only when querying remote users, indicating the defect is specific to federated environment behavior. | [Replication steps](./mastodom%2333357/README.md) |
+| S/N | Issue ID # | Defect Type | Sub Defect Type | Description | Replication |
+|----:|:---------:|-------------|-----------------|-------------|-------------|
+| 1  | [28381](https://github.com/mastodon/mastodon/issues/28381) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | The API returns a 500 error due to an ambiguous column in the SQL ORDER BY clause triggered by specific query parameters. | [Replication steps](./mastodon%2328381/README.md) |
+| 2  | [29071](https://github.com/mastodon/mastodon/issues/29071) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | The API returns Suggestion.source as an array of strings instead of the documented string type causing schema decoding failures for clients. | [Replication steps](./mastodom%2329071/README.md) |
+| 3  | [30039](https://github.com/mastodon/mastodon/issues/30039) | Data Validation and Query Processing Errors | Query Filter and Search Parameter Handling Errors | The Idempotency-Key header is ignored when scheduling posts, allowing duplicate scheduled posts to be created. | [Replication steps](./mastodon%2330039/README.md) |
+| 4  | [30103](https://github.com/mastodon/mastodon/issues/30103) | Data Validation and Query Processing Errors | Schema and Payload Validation Errors in POST APIs | Creating a new push subscription doesn't properly delete the previous subscription, leading to multiple active subscriptions. | [Replication steps](./mastodon%2330103/README.md) |
+| 5  | [33357](https://github.com/mastodon/mastodon/issues/33357) | Configuration and Environment Issues | Environment-Specific Behavior and Configuration Bugs | The API returns incorrect last usage dates for featured hashtags only when querying remote users, indicating the defect is specific to federated environment behavior. | [Replication steps](./mastodom%2333357/README.md) |
 
 ## Deploying, Managing, and Inspecting a Defect (Mastodon #28381)
 
@@ -26,10 +26,10 @@ Run the following commands in your terminal:
 
 ```bash
 # 1. Deploy the buggy version of the issue
-defects4rest checkout -p mastodon -i 28381 --buggy --start
+defects4rest checkout -p mastodon -i 28381 --buggy 
 
 # 2. Deploy the patched version of the issue 
-defects4rest checkout -p mastodon -i 28381 --patched --start
+defects4rest checkout -p mastodon -i 28381 --patched
 
 # 3. Stop running containers
 defects4rest checkout -p mastodon -i 28381 --stop
