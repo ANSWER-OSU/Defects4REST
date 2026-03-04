@@ -29,8 +29,8 @@ def run(project_name, issue_id=None, action="deploy", buggy=False, patched=None)
 
     try:
         deploy_module = importlib.import_module(module_name)
-    except ModuleNotFoundError:
-        print(f"No deploy script found for project: '{project_key}'")
+    except ModuleNotFoundError as e:
+        print(f"No deploy script found for project: '{e}'")
         return
 
     bug_data = get_bug_info(project_key, issue_id)
@@ -54,11 +54,17 @@ def run(project_name, issue_id=None, action="deploy", buggy=False, patched=None)
             return
         sha = patch_list[patched - 1]
 
+    if action == "clone_only":
+        if hasattr(deploy_module, "main"):
+            print(f"Clone and checkout {project_name} at SHA: {sha}")
+            deploy_module.main(sha, issue_id, action)
+        else:
+            print(f"'main' function not implemented in {module_name}")
 
-    if action == "deploy":
+    elif action == "deploy":
         if hasattr(deploy_module, "main"):
             print(f"Deploying {project_name} at SHA: {sha}")
-            deploy_module.main(sha, issue_id)
+            deploy_module.main(sha, issue_id, action)
         else:
             print(f"'main' function not implemented in {module_name}")
 

@@ -147,9 +147,12 @@ def wait_for_server(url, timeout=60):
     print("Timeout waiting for server.")
     return False
 
-def main(sha=None,issue_id=None):
+def main(sha=None, issue_id=None, action: str = "deploy"):
     """Main deployment function for NocoDB."""
-    pretty_section(f"Deploying Nocodb (isuue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying NocoDB (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout NocoDB (issue number {issue_id}) at SHA: {sha}")
 
     # Remove existing repo
     if os.path.isdir(PROJECT_DIR):
@@ -168,6 +171,10 @@ def main(sha=None,issue_id=None):
         run(["git", "checkout", sha], cwd=PROJECT_DIR)
     else:
         pretty_step("[main] Using default branch HEAD")
+
+    if action == "clone_only":
+        pretty_section(f"nocodb repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
     check_prereq("docker")
 

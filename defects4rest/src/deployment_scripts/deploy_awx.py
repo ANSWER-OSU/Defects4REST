@@ -418,7 +418,7 @@ def wait_for_awx():
     pretty_step("  ERROR: AWX did not become ready in time", "red")
     return False
 
-def main(sha=None,issue_id=None):
+def main(sha: str = "latest", issue_id=None, action: str = "deploy"):
     # Clone AWX repo
     # Remove existing repo
     if os.path.isdir(PROJECT_DIR):
@@ -443,6 +443,10 @@ def main(sha=None,issue_id=None):
         docker_tag = "latest"
     else:
         docker_tag = resolve_docker_tag_from_csv(sha, CSV_PATH)
+
+    if action == "clone_only":
+        pretty_section(f"awx repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
 
     pretty_section(f"Deploying awx (issue number {issue_id}) at version: {docker_tag}")

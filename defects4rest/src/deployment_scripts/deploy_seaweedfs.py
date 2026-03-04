@@ -29,7 +29,7 @@ import shutil
 import os
 import sys
 from defects4rest.src.utils.shell import run, pretty_step, pretty_section, pretty_subsection
-from defects4rest.src.utils.resources import ensure_temp_project_dir, check_prereq, data_csv
+from defects4rest.src.utils.resources import ensure_temp_project_dir, check_prereq
 from defects4rest.src.utils.git import get_default_branch, sha_exists
 from defects4rest.src.utils.issue_metadata import run_issue_hook
 from defects4rest.src.api_dep_setup import seaweedfs as seaweedfs_issues
@@ -50,10 +50,14 @@ def ensure_compose_file():
         run(["wget", "-q", "-O", compose_path, COMPOSE_URL])
     return compose_path
 
-def main(sha=None,issue_id=None):
+def main(sha=None, issue_id=None, action: str = "deploy"):
     """Main deployment function for SeaweedFS."""
     # Verify prerequisites
-    pretty_section(f"Deploying Seweedfs (isuue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying SeaweedFS (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout SeaweedFS (issue number {issue_id}) at SHA: {sha}")
+
     for tool in ("git", "docker", "docker-compose", "wget"):
         check_prereq(tool)
 
@@ -91,7 +95,11 @@ def main(sha=None,issue_id=None):
             run(["git", "pull", "origin", "main"])
     except subprocess.CalledProcessError as e:
         print(f"Git checkout failed: {e}", file=sys.stderr)
-        return
+        sys.exit(1)
+
+    if action == "clone_only":
+        pretty_section(f"seaweedfs repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
     compose_path = ensure_compose_file()
 

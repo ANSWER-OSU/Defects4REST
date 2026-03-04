@@ -28,6 +28,7 @@ The deployment uses pre-built Docker images from Docker Hub, with versions deter
 import subprocess
 import shutil
 import os
+import sys
 import secrets
 from defects4rest.src.utils.shell import run, pretty_step, pretty_section, pretty_subsection
 from defects4rest.src.utils.resources import ensure_temp_project_dir, check_prereq, data_csv
@@ -199,9 +200,12 @@ def deploy(image_tag: str, port: str, create_superuser: bool = True):
     if create_superuser:
         print("Superuser should be created automatically from env vars.")
 
-def main(sha=None, issue_id=None, port=DEFAULT_PORT, skip_superuser=False):
+def main(sha=None, issue_id=None, action: str = "deploy", port=DEFAULT_PORT, skip_superuser=False):
     """Main deployment function for NetBox."""
-    pretty_section(f"Deploying Netbox (issue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying Netbox (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout Netbox (issue number {issue_id}) at SHA: {sha}")
 
     # Remove existing repo
     if os.path.isdir(PROJECT_DIR):
@@ -220,6 +224,10 @@ def main(sha=None, issue_id=None, port=DEFAULT_PORT, skip_superuser=False):
         run(["git", "checkout", sha], cwd=PROJECT_DIR)
     else:
         pretty_step("[main] Using default branch HEAD")
+
+    if action == "clone_only":
+        pretty_section(f"netbox repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
     # Verify prerequisites
     for tool in ("git", "docker", "docker-compose"):

@@ -503,7 +503,7 @@ UPDATE llx_user SET admin = 1, statut = 1 WHERE rowid = {admin_user_id};
         pretty_step(f"Configuration failed: {e}", color="red")
         sys.exit(1)
 
-def main(sha=None, issue_id=None):
+def main(sha=None, issue_id=None, action: str = "deploy"):
     """
     Main deployment function for Dolibarr.
 
@@ -511,7 +511,10 @@ def main(sha=None, issue_id=None):
         sha (str, optional): Git commit SHA to checkout for default branch
         issue_id (int, optional): Issue number for special configurations
     """
-    pretty_section(f"Deploying dolibarr (issue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying Dolibarr (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout Dolibarr (issue number {issue_id}) at SHA: {sha}")
 
     # Verify required tools are available
     for tool in ("git", "docker"):
@@ -574,6 +577,10 @@ def main(sha=None, issue_id=None):
     except subprocess.CalledProcessError as e:
         print(f"Checkout failed: {e}", file=sys.stderr)
         sys.exit(1)
+
+    if action == "clone_only":
+        pretty_section(f"dolibarr repository cloned and checked out at: {project_dir_abs}")
+        sys.exit()
 
     # Create Docker configuration files
     ensure_files(issue_id=issue_id)

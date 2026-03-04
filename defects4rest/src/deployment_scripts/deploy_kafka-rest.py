@@ -41,6 +41,14 @@ from defects4rest.src.utils.issue_metadata import run_issue_hook
 
 REPO_URL = "https://github.com/confluentinc/kafka-rest.git"
 
+# some bugs require patched versions from forks
+PATCHED_SHAS = {
+    "4391b34bbc4caadc5aede4c4493bb918b74031a2": {
+        "repo": "https://github.com/luinix/kafka-rest.git",
+        "ref": "4391b34bbc4caadc5aede4c4493bb918b74031a2",
+    }
+}
+
 PROJECT_NAME = 'kafka-rest'
 CSV_PATH = data_csv(PROJECT_NAME)
 PROJECT_DIR = str(ensure_temp_project_dir(PROJECT_NAME))
@@ -421,9 +429,13 @@ def build_kafka(build_mode, docker_tag: str | None, compose_cmd: None, issue_id,
         pretty_step("Running docker compose up -d --build")
         run(compose_cmd + ["up", "-d", "--build"], cwd=DOCKER_ROOT)
 
-def main(sha: str = "latest", issue_id=None):
+def main(sha: str = "latest", issue_id=None, action: str = "deploy"):
     """Main deployment function for Kafka REST."""
-    pretty_section(f"Deploying Kafka-rest (issue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying kafka-rest (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout kafka-rest (issue number {issue_id}) at SHA: {sha}")
+
     for tool in ("git", "docker"):
         check_prereq(tool)
     compose_cmd = find_compose_cmd()
@@ -445,6 +457,10 @@ def main(sha: str = "latest", issue_id=None):
         run(["git", "checkout", sha], cwd=REPO_DIR)
     else:
         pretty_step("[main] Using default branch HEAD")
+
+    if action == "clone_only":
+        pretty_section(f"kafka-rest repository cloned and checked out at: {REPO_DIR}")
+        sys.exit()
 
     # Handle SHA lookup
     if sha == "latest":

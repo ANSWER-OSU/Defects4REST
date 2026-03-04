@@ -113,8 +113,12 @@ def _bug_id(row: dict[str, str]) -> int:
         pretty_step(f"Non-integer bug_id in CSV row: {bid_str!r}", color="red")
         sys.exit(2)
 
-def main(sha =  None,issue_id=None):
+def main(sha =  None,issue_id=None, action: str = "deploy"):
     """Main deployment function for Flowable REST."""
+    if action == "deploy":
+        pretty_section(f"Deploying flowable-engine (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout flowable-engine (issue number {issue_id}) at SHA: {sha}")
 
     # Remove existing repo
     if os.path.isdir(PROJECT_DIR):
@@ -133,6 +137,10 @@ def main(sha =  None,issue_id=None):
         run(["git", "checkout", sha], cwd=PROJECT_DIR)
     else:
         pretty_step("[main] Using default branch HEAD")
+
+    if action == "clone_only":
+        pretty_section(f"flowable-engine repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
     port = DEFAULT_PORT
     detach = False
