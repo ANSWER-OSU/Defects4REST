@@ -66,7 +66,7 @@ podman version
 
 # Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
 # For example:
-defects4rest checkout -p podman -i 25881< --buggy OR --patched > --no-deploy
+defects4rest checkout -p podman -i 25881 < --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing Podman
@@ -82,6 +82,7 @@ If the Podman service fails to start or behaves unexpectedly, inspect the termin
 ## References
 
 * [Podman GitHub Repository](https://github.com/containers/podman)
+
 
 
 
