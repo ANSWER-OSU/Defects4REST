@@ -111,6 +111,12 @@ defects4rest checkout -p <project> -i <issue> --patched
 
 # Cleanup
 defects4rest checkout -p <project> -i <issue> --clean
+
+# Clone and checkout only (buggy version)
+defects4rest checkout -p <project> -i <issue> --buggy --no-deploy
+
+# Clone and checkout only (patched version)
+defects4rest checkout -p <project> -i <issue> --patched --no-deploy
 ```
 
 See detailed documentation: [info](./docs/commands/info.md) | [checkout](./docs/commands/checkout.md)

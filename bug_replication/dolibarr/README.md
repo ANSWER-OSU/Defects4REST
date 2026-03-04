@@ -62,6 +62,10 @@ defects4rest info -p dolibarr -i 23179
 # 6. Check container logs if something goes wrong
 docker logs dolibarr-dolibarr-1
 docker logs dolibarr-db-1
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p dolibarr -i 23179 < --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing Dolibarr

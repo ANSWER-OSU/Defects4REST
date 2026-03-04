@@ -43,6 +43,10 @@ defects4rest info -p mastodon -i 28381
 # 6. Check container logs if something goes wrong
 docker-compose logs web
 docker-compose logs sidekiq
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p mastodon -i 28381< --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing Mastodon

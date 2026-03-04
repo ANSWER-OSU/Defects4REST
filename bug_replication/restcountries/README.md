@@ -55,6 +55,10 @@ defects4rest info -p restcountries -i 116
 
 # 6. Check container logs if something goes wrong
 docker logs restcountries-tomcat
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p restcountries -i 116< --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing RESTCountries:

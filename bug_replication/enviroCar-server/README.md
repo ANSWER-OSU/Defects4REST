@@ -43,6 +43,10 @@ defects4rest info -p enviroCar-server -i 45
 
 # 6. Check container logs if something goes wrong
 docker logs envirocar-server
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p enviroCar-server -i 45 < --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing EnviroCar-server

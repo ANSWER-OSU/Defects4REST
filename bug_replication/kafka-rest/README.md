@@ -43,6 +43,9 @@ defects4rest info -p kafka-rest -i 475
 # 6. Check container logs if something goes wrong
 docker logs kafka-rest
 
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p kafka-rest -i 475< --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing Kafka REST

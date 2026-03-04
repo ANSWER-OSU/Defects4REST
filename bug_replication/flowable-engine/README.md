@@ -43,6 +43,10 @@ defects4rest info -p flowable-engine -i 1939
 
 # 6. Check container logs if something goes wrong
 docker logs flowable-engine
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p flowable-engine -i 1939 < --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing Flowable-engine

@@ -40,6 +40,10 @@ defects4rest info -p signal-cli-rest-api -i 387
 
 # 6. Check container logs if something goes wrong
 docker logs signal-cli-rest-api
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p signal-cli-rest-api -i 387< --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing Signal-CLI REST API

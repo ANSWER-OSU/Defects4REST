@@ -26,7 +26,7 @@ Run the following commands in your terminal:
 
 ```bash
 # 1. Deploy the buggy version of the issue
-defects4rest checkout -p awx -i 7243 --buggy 
+defects4rest checkout -p awx -i 7243 --buggy
 
 # 2. Deploy the patched version of the issue
 defects4rest checkout -p awx -i 7243 --patched
@@ -43,6 +43,10 @@ defects4rest info -p awx -i 7243
 # 6. Check container logs if something goes wrong
 docker logs awx_web
 docker logs awx_task
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p awx -i 7243 < --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing AWX

@@ -21,6 +21,7 @@ defects4rest checkout -p <project> -i <issue_id> [OPTIONS]
 |--------|-------------|
 | `--buggy` | Deploy the buggy version |
 | `--patched` | Deploy the patched version |
+| `--no-deploy` | Clone and checkout only (no deploy) |
 | `--stop` | Stop running containers |
 | `--clean` | Stop and remove all containers, volumes, networks |
 
@@ -32,11 +33,24 @@ defects4rest checkout -p <project> -i <issue_id> [OPTIONS]
 defects4rest checkout -p netbox -i 18363 --buggy
 ```
 
+### Only clone and checkout buggy version.
+
+```bash
+defects4rest checkout -p netbox -i 18363 --buggy --no-deploy
+```
+
+
 ### Deploy Patched version and start the service from the URL displayed on the terminal. NOTE: this will stop already running services. 
 
 ```bash
 # First patch (default)
 defects4rest checkout -p netbox -i 18363 --patched
+```
+
+### Only clone and checkout patched version.
+
+```bash
+defects4rest checkout -p netbox -i 18363 --patched --no-deploy
 ```
 
 ### Stop Docker container of a buggy or patched version of a service 

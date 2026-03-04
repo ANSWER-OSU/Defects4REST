@@ -84,6 +84,10 @@ defects4rest info -p seaweedfs -i 913
 
 # 6. Check container logs if something goes wrong
 docker logs seaweedfs
+
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p seaweedfs -i 913< --buggy OR --patched > --no-deploy
 ```
 
 

@@ -64,6 +64,9 @@ sudo -E venv/bin/defects4rest info -p podman -i 25881
 # 6. Verify
 podman version
 
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p podman -i 25881< --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing Podman

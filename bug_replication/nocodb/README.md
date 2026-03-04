@@ -47,6 +47,9 @@ defects4rest info -p nocodb -i 1866
 # 6. Check container logs if something goes wrong
 docker logs nocodb
 
+# Note: add --no-deploy flag after "--buggy" or "--patched" if you only want to clone and checkout, and not deploy
+# For example:
+defects4rest checkout -p nocodb -i 1866< --buggy OR --patched > --no-deploy
 ```
 
 ## Accessing NocoDB
