@@ -53,10 +53,17 @@ def main():
     checkout_parser = subparsers.add_parser("checkout", help="Checkout bug version and deploy")
     checkout_parser.add_argument("-p", "--project", required=True, help="Project name (e.g., awx)")
     checkout_parser.add_argument("-i", "--issue_id", type=int, required=True, help="Issue ID")
-    checkout_parser.add_argument("--buggy", action="store_true", help="Checkout the buggy version")
-    checkout_parser.add_argument("--patched", type=int, nargs="?", const=1,help="Checkout the nth patched version (default is 1)")
-    checkout_parser.add_argument("--stop", action="store_true", help="Stop running containers only")
-    checkout_parser.add_argument("--clean", action="store_true", help="Stop and remove containers/volumes/networks")
+
+    # version group (only --buggy OR --patched)
+    version_group = checkout_parser.add_mutually_exclusive_group(required=True)
+    version_group.add_argument("--buggy", action="store_true", help="Checkout & deploy the buggy version")
+    version_group.add_argument("--patched", type=int, nargs="?", const=1,help="Checkout & deploy the nth patched version (default is 1)")
+
+    # mutually exclusive
+    deploy_group = checkout_parser.add_mutually_exclusive_group()
+    deploy_group.add_argument("--no-deploy", action="store_true", help="Clone and checkout only (no deploy)")
+    deploy_group.add_argument("--stop", action="store_true", help="Stop running containers only")
+    deploy_group.add_argument("--clean", action="store_true", help="Stop and remove containers/volumes/networks")
 
     # Parse all command-line arguments
     args = parser.parse_args()
@@ -76,6 +83,9 @@ def main():
         elif args.stop:
             # Stop running containers only, keep volumes/networks
             action = "stop"
+        elif args.no_deploy:
+            # only clone and checkout (no deploy)
+            action = "clone_only"
         elif args.buggy or args.patched:
             # Deploy the selected version (buggy or patched)
             action = "deploy"

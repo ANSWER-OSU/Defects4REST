@@ -31,8 +31,9 @@ from defects4rest.src.utils.git import sha_exists, get_default_branch
 from defects4rest.src.api_dep_setup import mastodon as mastodon_isuue
 
 # Default Mastodon repo
+PROJECT_NAME = "mastodon"
 REPO_URL = "https://github.com/mastodon/mastodon.git"
-PROJECT_DIR = os.path.abspath("defects4rest/data/mastodon/mastodon-docker")
+PROJECT_DIR = str(ensure_temp_project_dir(PROJECT_NAME))
 ENV_SAMPLE = ".env.production.sample"
 ENV_TARGET = ".env.production"
 
@@ -213,9 +214,13 @@ puts "ACCESS_TOKEN: #{{token.token}}"
 
     return credentials
 
-def main(sha=None, issue_id=None):
+def main(sha=None, issue_id=None, action: str = "deploy"):
     # Ensure required tools
-    pretty_section(f"Deploying Mastodom (isuue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying Mastodon (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout Mastodon (issue number {issue_id}) at SHA: {sha}")
+
     for tool in ("git", "docker", "docker-compose"):
         check_prereq(tool)
     # Determine repo URL based on SHA
@@ -301,6 +306,10 @@ def main(sha=None, issue_id=None):
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Checkout failed: {e}", file=sys.stderr)
         sys.exit(1)
+
+    if action == "clone_only":
+        pretty_section(f"mastodon repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
     # Copy .env.sample → .env.production if not exists
     if os.path.exists(ENV_SAMPLE) and not os.path.exists(ENV_TARGET):

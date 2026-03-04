@@ -27,11 +27,17 @@ It uses a CSV file to map bug IDs and SHA commits to pre-built Docker images.
 import csv
 import shlex
 import sys
+import os
+import shutil
+
 from pathlib import Path
 from defects4rest.src.utils.shell import run, pretty_step, pretty_section, pretty_subsection
-from defects4rest.src.utils.resources import data_csv, check_prereq
+from defects4rest.src.utils.resources import data_csv, check_prereq, ensure_temp_project_dir
 
-CSV_PATH = data_csv("flowable-engine")
+PROJECT_NAME = 'flowable-engine'
+CSV_PATH = data_csv(PROJECT_NAME)
+PROJECT_DIR = str(ensure_temp_project_dir(PROJECT_NAME))
+REPO_URL = "https://github.com/flowable/flowable-engine.git"
 
 # Docker image configuration
 DEFAULT_IMAGE_REPO = "flowable/flowable-rest"
@@ -107,8 +113,35 @@ def _bug_id(row: dict[str, str]) -> int:
         pretty_step(f"Non-integer bug_id in CSV row: {bid_str!r}", color="red")
         sys.exit(2)
 
-def main(sha =  None,issue_id=None):
+def main(sha =  None,issue_id=None, action: str = "deploy"):
     """Main deployment function for Flowable REST."""
+    if action == "deploy":
+        pretty_section(f"Deploying flowable-engine (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout flowable-engine (issue number {issue_id}) at SHA: {sha}")
+
+    # Remove existing repo
+    if os.path.isdir(PROJECT_DIR):
+        pretty_step(f"[main] Removing existing repo at {PROJECT_DIR} for a clean checkout...")
+        shutil.rmtree(PROJECT_DIR)
+
+    # Clone and checkout
+    pretty_step(f"[main] Cloning repo into {PROJECT_DIR}")
+    run(["git", "clone", REPO_URL, PROJECT_DIR])
+
+    pretty_step("[main] Fetching all refs...")
+    run(["git", "fetch", "--all", "--tags"], cwd=PROJECT_DIR)
+
+    if sha and sha.lower() != "latest":
+        pretty_step(f"[main] Checking out {sha}")
+        run(["git", "checkout", sha], cwd=PROJECT_DIR)
+    else:
+        pretty_step("[main] Using default branch HEAD")
+
+    if action == "clone_only":
+        pretty_section(f"flowable-engine repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
+
     port = DEFAULT_PORT
     detach = False
     variant = None

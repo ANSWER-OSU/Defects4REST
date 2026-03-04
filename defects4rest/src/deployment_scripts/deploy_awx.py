@@ -39,7 +39,10 @@ from defects4rest.src.utils.resources import *
 from defects4rest.src.utils.shell import pretty_section, pretty_step
 from defects4rest.src.utils.git import *
 
-CSV_PATH = "defects4rest/data/defect_data/awx_info.csv"
+PROJECT_NAME = 'awx'
+CSV_PATH = data_csv(PROJECT_NAME)
+PROJECT_DIR = str(ensure_temp_project_dir(PROJECT_NAME))
+REPO_URL = "https://github.com/ansible/awx.git"
 
 # Regex patterns for SHA parsing
 _HEX_SHA_RE = re.compile(r"\b[0-9a-fA-F]{7,40}\b")
@@ -415,13 +418,35 @@ def wait_for_awx():
     pretty_step("  ERROR: AWX did not become ready in time", "red")
     return False
 
-def main(sha=None,issue_id=None):
+def main(sha: str = "latest", issue_id=None, action: str = "deploy"):
+    # Clone AWX repo
+    # Remove existing repo
+    if os.path.isdir(PROJECT_DIR):
+        pretty_step(f"[main] Removing existing repo at {PROJECT_DIR} for a clean checkout...")
+        shutil.rmtree(PROJECT_DIR)
+
+    # Clone and checkout
+    pretty_step(f"[main] Cloning repo into {PROJECT_DIR}")
+    run(["git", "clone", REPO_URL, PROJECT_DIR])
+
+    pretty_step("[main] Fetching all refs...")
+    run(["git", "fetch", "--all", "--tags"], cwd=PROJECT_DIR)
+
+    if sha and sha.lower() != "latest":
+        pretty_step(f"[main] Checking out {sha}")
+        run(["git", "checkout", sha], cwd=PROJECT_DIR)
+    else:
+        pretty_step("[main] Using default branch HEAD")
 
     # Handle SHA lookup
     if sha == "latest":
         docker_tag = "latest"
     else:
         docker_tag = resolve_docker_tag_from_csv(sha, CSV_PATH)
+
+    if action == "clone_only":
+        pretty_section(f"awx repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
 
     pretty_section(f"Deploying awx (issue number {issue_id}) at version: {docker_tag}")

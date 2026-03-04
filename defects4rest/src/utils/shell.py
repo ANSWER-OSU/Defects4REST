@@ -29,6 +29,8 @@ import shutil
 import os
 import sys
 
+from typing import List
+
 # ANSI color codes for terminal output
 COLORS = {
     "reset": "\033[0m",
@@ -134,38 +136,48 @@ def pretty_step(msg: str, color: str = "green", prefix: str = "→"):
         print(f"{prefix} {msg}")
 
 
-def run(cmd, env=None, cwd=None):
-    """
-    Execute a shell command and display output with pretty formatting.
+# def run(cmd, env=None, cwd=None):
+#     """
+#     Execute a shell command and display output with pretty formatting.
 
-    Runs the command, captures stdout/stderr, and displays them with
-    colored formatting. Raises CalledProcessError if command fails.
+#     Runs the command, captures stdout/stderr, and displays them with
+#     colored formatting. Raises CalledProcessError if command fails.
 
-    Args:
-        cmd: List of command arguments (e.g., ["git", "clone", "url"]).
-        env: Optional environment variables dict (defaults to os.environ).
-        cwd: Optional working directory for command execution.
-    """
-    location = f"(cwd={cwd})" if cwd else ""
-    pretty_step(f"cmd-> {' '.join(cmd)} {location}")
+#     Args:
+#         cmd: List of command arguments (e.g., ["git", "clone", "url"]).
+#         env: Optional environment variables dict (defaults to os.environ).
+#         cwd: Optional working directory for command execution.
+#     """
+#     location = f"(cwd={cwd})" if cwd else ""
+#     pretty_step(f"cmd-> {' '.join(cmd)} {location}")
 
-    # Execute command and capture output
-    result = subprocess.run(
+#     # Execute command and capture output
+#     result = subprocess.run(
+#         cmd,
+#         env=env or os.environ,
+#         cwd=cwd,
+#         capture_output=True,
+#         text=True
+#     )
+
+#     # Display stdout in cyan if present
+#     if result.stdout:
+#         pretty_step(result.stdout, "cyan")
+
+#     # Display stderr in red if present
+#     if result.stderr:
+#         pretty_step(result.stderr, "red")
+
+#     # Raise exception if command failed
+#     if result.returncode != 0:
+#         raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+
+def run(cmd: List[str], cwd: str = None, env=None):
+    """Execute command with logging and error checking."""
+    print(f"> {' '.join(cmd)}")
+    subprocess.run(
         cmd,
-        env=env or os.environ,
         cwd=cwd,
-        capture_output=True,
-        text=True
+        env=env or os.environ,
+        check=True,
     )
-
-    # Display stdout in cyan if present
-    if result.stdout:
-        pretty_step(result.stdout, "cyan")
-
-    # Display stderr in red if present
-    if result.stderr:
-        pretty_step(result.stderr, "red")
-
-    # Raise exception if command failed
-    if result.returncode != 0:
-        raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)

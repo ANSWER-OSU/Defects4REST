@@ -412,12 +412,17 @@ def find_compose_cmd():
 # ---------------------------------------------------------------------
 
 
-def main(sha: str = "latest",issue_id=None):
+def main(sha: str = "latest", issue_id=None, action: str = "deploy"):
     """
     Entry point used by defects4rest.checkout.
 
     :param sha: Git commit SHA to checkout (or "latest" to use current branch head).
     """
+    if action == "deploy":
+        pretty_section(f"Deploying enviroCar-server (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout enviroCar-server (issue number {issue_id}) at SHA: {sha}")
+
     # 1) Check prerequisites
     for tool in ("git", "docker"):
         check_prereq(tool)
@@ -443,6 +448,10 @@ def main(sha: str = "latest",issue_id=None):
         pretty_step(f"Checked out SHA (requested): {sha}")
     else:
         pretty_step("Using currently checked-out branch (update it manually if needed).")
+
+    if action == "clone_only":
+        pretty_section(f"enviroCar-server repository cloned and checked out at: {REPO_DIR}")
+        sys.exit()
 
     # 5) Patch mongo.properties and mail.properties
     patch_mongo_properties(REPO_DIR)

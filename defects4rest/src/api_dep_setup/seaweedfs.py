@@ -20,11 +20,11 @@
 #-------------------------------------------------------------------------------
 
 """SeaweedFS API setup script for creating test data for issues."""
-import boto3
 import random
 import string
 
 def issue_6576(args):
+    import boto3
     """
     Create S3 bucket with test object and generate presigned URL for issue 6576.
     Tests x-id=GetObject parameter handling bug.

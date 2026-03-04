@@ -59,9 +59,12 @@ def safe_rmtree(path: str):
         raise RuntimeError(f"Refusing to delete dangerous path: {path}")
     shutil.rmtree(path)
 
-def main(sha=None, issue_id=None):
+def main(sha=None, issue_id=None, action: str = "deploy"):
     """Main deployment function for REST Countries."""
-    pretty_section(f"Deploying REST Countries (issue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying RESTCountries (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout RESTCountries (issue number {issue_id}) at SHA: {sha}")
 
     # Verify prerequisites
     for tool in ("git", "docker"):
@@ -100,6 +103,10 @@ def main(sha=None, issue_id=None):
                 run(["git", "checkout", sha])
     except subprocess.CalledProcessError as e:
         sys.exit(1)
+
+    if action == "clone_only":
+        pretty_section(f"restcountries repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
 
     pretty_step(f"Building commit: {current_sha()}")
 

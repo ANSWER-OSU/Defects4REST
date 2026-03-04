@@ -170,7 +170,34 @@ def _container_name(row: BugRow, variant: str) -> str:
     """Generate unique container name."""
     return f"{NAME_PREFIX}{row.bug_id}-{variant}"
 
-def main(sha = None,issue_id=None,port: str = DEFAULT_PORT,mode: str = DEFAULT_MODE,config_dir: str = DEFAULT_CONFIG,detach: bool = False, *,bug_id: int | None = None,variant: str | None = None):
+def main(sha = None,issue_id=None, action: str = "deploy", port: str = DEFAULT_PORT,mode: str = DEFAULT_MODE,config_dir: str = DEFAULT_CONFIG,detach: bool = False, *,bug_id: int | None = None,variant: str | None = None):
+    if action == "deploy":
+        pretty_section(f"Deploying signal-cli-rest-api (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout signal-cli-rest-api (issue number {issue_id}) at SHA: {sha}")
+    # Remove existing repo
+    if os.path.isdir(PROJECT_DIR):
+        pretty_step(f"[main] Removing existing repo at {PROJECT_DIR} for a clean checkout...")
+        shutil.rmtree(PROJECT_DIR)
+
+    # Clone and checkout
+    pretty_step(f"[main] Cloning repo into {PROJECT_DIR}")
+    run(["git", "clone", REPO_URL, PROJECT_DIR])
+
+    pretty_step("[main] Fetching all refs...")
+    run(["git", "fetch", "--all", "--tags"], cwd=PROJECT_DIR)
+
+    if sha and sha.lower() != "latest":
+        pretty_step(f"[main] Checking out {sha}")
+        run(["git", "checkout", sha], cwd=PROJECT_DIR)
+    else:
+        pretty_step("[main] Using default branch HEAD")
+
+    if action == "clone_only":
+        pretty_section(f"signal-cli-rest-api repository cloned and checked out at: {PROJECT_DIR}")
+        sys.exit()
+
+
     """Main deployment function for signal-cli-rest-api."""
     pretty_section(f"Deploying signal-cli-rest-api (isuue number {issue_id}) at SHA: {sha}")
     check_prereq("docker")

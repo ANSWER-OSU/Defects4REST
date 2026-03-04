@@ -52,9 +52,13 @@ def ensure_go_version():
         sys.exit("go not found in PATH. Please install Go 1.16 or newer.")
 
 
-def main(sha=None,issue_id=None):
+def main(sha=None, issue_id=None, action: str = "deploy"):
     # Basic environment checks
-    pretty_section(f"Deploying podman (issue number {issue_id}) at SHA: {sha}")
+    if action == "deploy":
+        pretty_section(f"Deploying Podman (issue number {issue_id}) at SHA: {sha}")
+    else:
+        pretty_section(f"Cloning and checkout Podman (issue number {issue_id}) at SHA: {sha}")
+
     if not sys.platform.startswith("linux"):
         sys.exit("Linux host required to install Podman.")
 
@@ -90,6 +94,9 @@ def main(sha=None,issue_id=None):
     except subprocess.CalledProcessError as e:
         sys.exit(f"Git checkout failed: {e}")
 
+    if action == "clone_only":
+        pretty_section(f"podman repository cloned and checked out at: {CLONE_DIR}")
+        sys.exit()
 
     pretty_step(f"Building with BUILDTAGS='{BUILDTAGS}' PREFIX={PREFIX}")
     build_args = ["make", f"BUILDTAGS={BUILDTAGS}", f"PREFIX={PREFIX}"]
@@ -144,7 +151,7 @@ def clean():
 
     # Remove containers
     pretty_step("Removing containers...")
-    subprocess.run(f"podman ps -a --format '{{{{.Names}}}}' | grep '^{prefix}' | xargs -r podman rm -f", shell=True, check=False)
+    subprocess.run(f"podman ps -a --format '{{{{.Names.}}}}' | grep '^{prefix}' | xargs -r podman rm -f", shell=True, check=False)
 
     # Remove images
     pretty_step("Removing images...")
@@ -161,7 +168,11 @@ def clean():
     pretty_section("Podman cleanup complete.")
 
 def stop():
-    clean()
+    prefix = "d4rest_"
+
+    # Remove containers
+    pretty_step("Stopping containers...")
+    subprocess.run(f"podman ps -a --format '{{{{.Names.}}}}' | grep '^{prefix}' | xargs -r podman stop", shell=True, check=False)
 
 if __name__ == "__main__":
     main()
