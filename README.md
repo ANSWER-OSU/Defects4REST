@@ -15,7 +15,7 @@ The benchmark includes 110 defects across 12 real-world open-source projects alo
 |---------|:----:|
 | [awx](./bug_replication/awx/) | 5 |
 | [dolibarr](./bug_replication/dolibarr/) | 25 |
-| [enviroCar-server](./bug_replication/envirocar-server/) | 4 |
+| [enviroCar-server](./bug_replication/enviroCar-server/) | 4 |
 | [flowable-engine](./bug_replication/flowable-engine/) | 5 |
 | [kafka-rest](./bug_replication/kafka-rest/) | 3 |
 | [mastodon](./bug_replication/mastodon/) | 5 |
