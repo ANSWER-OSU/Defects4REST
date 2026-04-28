@@ -1,0 +1,691 @@
+openapi: 3.0.3
+info:
+  title: Kafka REST Proxy API
+  description: >
+    OpenAPI specification for Kafka REST Proxy (API v2).
+    Supports producing and consuming messages, topic metadata,
+    partitions, consumers, and brokers.
+  version: "2.0.0"
+
+servers:
+  - url: http://kafkaproxy.example.com
+
+tags:
+  - name: Topics
+  - name: Partitions
+  - name: Consumers
+  - name: Brokers
+
+paths:
+
+  /topics:
+    get:
+      tags: [Topics]
+      summary: List topics
+      responses:
+        "200":
+          description: List of topic names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /topics/{topic_name}:
+    parameters:
+      - name: topic_name
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Topics]
+      summary: Get topic metadata
+      responses:
+        "200":
+          description: Topic metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopicMetadata"
+        "404":
+          $ref: "#/components/responses/TopicNotFound"
+
+    post:
+      tags: [Topics]
+      summary: Produce messages to topic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProduceRequest"
+      responses:
+        "200":
+          description: Produce result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProduceResponse"
+        "404":
+          $ref: "#/components/responses/TopicNotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /topics/{topic_name}/partitions:
+    get:
+      tags: [Partitions]
+      summary: List partitions for a topic
+      parameters:
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Partition list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PartitionMetadata"
+        "404":
+          $ref: "#/components/responses/TopicNotFound"
+
+  /topics/{topic_name}/partitions/{partition_id}:
+    parameters:
+      - name: topic_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: partition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    get:
+      tags: [Partitions]
+      summary: Get partition metadata
+      responses:
+        "200":
+          description: Partition metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartitionMetadata"
+        "404":
+          $ref: "#/components/responses/PartitionNotFound"
+
+    post:
+      tags: [Partitions]
+      summary: Produce messages to partition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProduceRequest"
+      responses:
+        "200":
+          description: Produce result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProduceResponse"
+  /consumers/{group_name}:
+    post:
+      summary: Create a consumer instance
+      operationId: createConsumer
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, format]
+              properties:
+                name:
+                  type: string
+                format:
+                  type: string
+                  enum: [json, avro, binary]
+                auto.offset.reset:
+                  type: string
+                  enum: [earliest, latest]
+      responses:
+        "200":
+          description: Consumer created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  instance_id:
+                    type: string
+                  base_uri:
+                    type: string
+  /topics/{topic_name}/partitions/{partition_id}/messages:
+    get:
+      tags:
+        - Partitions
+      summary: Consume messages from a topic partition
+      description: >
+        Consume messages from a specific partition starting at a given offset.
+        The embedded format (binary, avro, json) is determined by the Accept header.
+      parameters:
+        - name: topic_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Topic to consume messages from
+
+        - name: partition_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Partition to consume messages from
+
+        - name: offset
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Offset to start consuming from
+
+        - name: count
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Number of messages to consume
+
+      responses:
+        "200":
+          description: Messages successfully consumed
+          content:
+            application/vnd.kafka.binary.v1+json:
+              schema:
+                $ref: "#/components/schemas/PartitionMessageList"
+            application/vnd.kafka.avro.v1+json:
+              schema:
+                $ref: "#/components/schemas/PartitionMessageList"
+            application/vnd.kafka.json.v1+json:
+              schema:
+                $ref: "#/components/schemas/PartitionMessageList"
+
+        "404":
+          description: Topic, partition, or leader not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                topic_not_found:
+                  value:
+                    error_code: 40401
+                    message: Topic not found
+                partition_not_found:
+                  value:
+                    error_code: 40402
+                    message: Partition not found
+                leader_not_available:
+                  value:
+                    error_code: 40404
+                    message: Leader not available
+
+        "500":
+          description: General consumer error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "503":
+          description: No SimpleConsumer available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                consumer_pool_exhausted:
+                  value:
+                    error_code: 50301
+                    message: No SimpleConsumer available
+
+
+  /consumers/{group_name}/instances/{instance}:
+    delete:
+      summary: Delete a consumer instance
+      operationId: deleteConsumer
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Consumer deleted
+
+  /consumers/{group_name}/instances/{instance}/subscription:
+    post:
+      summary: Subscribe consumer to topics
+      operationId: subscribeConsumer
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [topics]
+              properties:
+                topics:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "204":
+          description: Subscription applied
+
+  /consumers/{group_name}/instances/{instance}/assignment:
+    post:
+      summary: Assign partitions manually
+      operationId: assignPartitions
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [partitions]
+              properties:
+                partitions:
+                  type: array
+                  items:
+                    type: object
+                    required: [topic, partition]
+                    properties:
+                      topic:
+                        type: string
+                      partition:
+                        type: integer
+      responses:
+        "204":
+          description: Assignment applied
+
+  /consumers/{group_name}/instances/{instance}/records:
+    get:
+      summary: Consume records
+      operationId: consumeRecords
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: timeout
+          in: query
+          schema:
+            type: integer
+            default: 1000
+        - name: max_bytes
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Records fetched
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    topic:
+                      type: string
+                    partition:
+                      type: integer
+                    offset:
+                      type: integer
+                    key:
+                      nullable: true
+                    value:
+                      nullable: true
+
+  /consumers/{group_name}/instances/{instance}/offsets:
+    post:
+      summary: Commit offsets
+      operationId: commitOffsets
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offsets:
+                  type: array
+                  items:
+                    type: object
+                    required: [topic, partition, offset]
+                    properties:
+                      topic:
+                        type: string
+                      partition:
+                        type: integer
+                      offset:
+                        type: integer
+      responses:
+        "204":
+          description: Offsets committed
+
+    get:
+      summary: Get committed offsets
+      operationId: getCommittedOffsets
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instance
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current committed offsets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offsets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        topic:
+                          type: string
+                        partition:
+                          type: integer
+                        offset:
+                          type: integer
+
+
+  /brokers:
+    get:
+      tags: [Brokers]
+      summary: List brokers
+      responses:
+        "200":
+          description: Broker list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brokers:
+                    type: array
+                    items:
+                      type: integer
+
+components:
+
+  schemas:
+
+    ErrorResponse:
+      type: object
+      properties:
+        error_code:
+          type: integer
+        message:
+          type: string
+
+    TopicMetadata:
+      type: object
+      properties:
+        name:
+          type: string
+        configs:
+          type: object
+          additionalProperties:
+            type: string
+        partitions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartitionMetadata"
+
+    PartitionMetadata:
+      type: object
+      properties:
+        partition:
+          type: integer
+        leader:
+          type: integer
+        replicas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Replica"
+
+    Replica:
+      type: object
+      properties:
+        broker:
+          type: integer
+        leader:
+          type: boolean
+        in_sync:
+          type: boolean
+
+    ProduceRequest:
+      type: object
+      properties:
+        key_schema:
+          type: string
+        key_schema_id:
+          type: integer
+        value_schema:
+          type: string
+        value_schema_id:
+          type: integer
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                nullable: true
+              value:
+                nullable: false
+              partition:
+                type: integer
+
+    ProduceResponse:
+      type: object
+      properties:
+        key_schema_id:
+          type: integer
+          nullable: true
+        value_schema_id:
+          type: integer
+          nullable: true
+        offsets:
+          type: array
+          items:
+            type: object
+            properties:
+              partition:
+                type: integer
+                nullable: true
+              offset:
+                type: integer
+                nullable: true
+              error_code:
+                type: integer
+                nullable: true
+              error:
+                type: string
+                nullable: true
+
+    CreateConsumerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        format:
+          type: string
+          enum: [binary, avro, json]
+        auto.offset.reset:
+          type: string
+        auto.commit.enable:
+          type: string
+
+    CreateConsumerResponse:
+      type: object
+      properties:
+        instance_id:
+          type: string
+        base_uri:
+          type: string
+          format: uri
+
+    ConsumerRecord:
+      type: object
+      properties:
+        topic:
+          type: string
+        key:
+          nullable: true
+        value:
+          nullable: true
+        partition:
+          type: integer
+        offset:
+          type: integer
+    
+    PartitionMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/PartitionMessage"
+
+    PartitionMessage:
+      type: object
+      properties:
+        key:
+          nullable: true
+          description: Message key (format depends on embedded format)
+        value:
+          nullable: true
+          description: Message value (format depends on embedded format)
+        partition:
+          type: integer
+        offset:
+          type: integer
+          format: int64
+
+  responses:
+
+    TopicNotFound:
+      description: Topic not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    PartitionNotFound:
+      description: Partition not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    ConsumerNotFound:
+      description: Consumer instance not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    UnprocessableEntity:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    NotAcceptable:
+      description: Unsupported format
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
