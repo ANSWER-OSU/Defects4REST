@@ -7,7 +7,7 @@ The API response for a field with thousands of linked records is truncated witho
 https://github.com/nocodb/nocodb/issues/2242
 
 ## Triggering Endpoint
-`/api/v1/db/data/noco/{projectName}/{tableName}/{rowId}`
+`/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}`
 
 ## Triggering Behavior
 **Step 1.** Signin as a super user (admin)
