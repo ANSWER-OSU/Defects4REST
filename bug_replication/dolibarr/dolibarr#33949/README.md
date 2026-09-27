@@ -6,7 +6,7 @@ The API accepts a PUT request to update the extrafield's default value but fails
 ## GitHub Issue URL
 https://github.com/Dolibarr/dolibarr/issues/33949
 ## Triggering Endpoints
--   setup/extrafields/projet/call_to_action   
+- setup/extrafields/{elementtype}/{attrname}  
 ## **Triggering Behavior**
 
 **Step1.** Create the extrafield
