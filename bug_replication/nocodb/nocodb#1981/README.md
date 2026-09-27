@@ -7,7 +7,7 @@ The API does not correctly interpret the (*) wildcard in the nested fields query
 https://github.com/nocodb/nocodb/issues/1981
 
 ## Triggering Endpoints
-`/api/v1/db/data/noco/{projectName}/{tableName}?nested[{m2mColumnName}][fields]=%2A`
+`/api/v1/db/data/{orgs}/{projectName}/{tableName}?nested[{m2mColumnName}][fields]=%2A`
 
 (encoded version): `/api/v1/db/data/noco/{projectName}/{tableName}?nested%5B{m2mColumnName}%5D%5Bfields%5D=%2A`
 
