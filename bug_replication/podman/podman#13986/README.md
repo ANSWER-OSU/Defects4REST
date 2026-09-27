@@ -7,7 +7,7 @@ The API rejects valid status filter values like removing and restarting resultin
 https://github.com/containers/podman/issues/13986
 
 ## Triggering Endpoint(s)
-- `/libpod/containers`
+- `/libpod/containers/json`
 
 ## Triggering Behavior
 **Step 1.** Filter containers by status=removing
