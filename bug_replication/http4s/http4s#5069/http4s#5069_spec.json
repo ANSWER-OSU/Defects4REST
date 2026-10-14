@@ -1,0 +1,85 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "http4s — bug #5069 reproduction endpoint",
+    "description": "OpenAPI specification of the endpoint affected by http4s issue #5069 (Accept-Language parser fails on wildcard `*` in 0.22). The bug is triggered when server-side application code explicitly parses the `Accept-Language` request header. The minimal reproduction server used in this bug documentation exposes only `GET /`, but the bug affects any route that calls `Accept-Language.parse(...)`.",
+    "version": "0.23.x-buggy"
+  },
+  "externalDocs": {
+    "description": "Original GitHub issue #5069",
+    "url": "https://github.com/http4s/http4s/issues/5069"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8080",
+      "description": "Local Ember reproduction server (started via deploy_http4s.py)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "repro",
+      "description": "Endpoint used to reproduce bug #5069"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["repro"],
+        "summary": "Root route — used to trigger the bug",
+        "description": "On the buggy build (commit `82f8c4b90b08bd6e037b400db52f20b86d666c23`), the route handler calls `Accept-Language.parse(...)` on the incoming request's `Accept-Language` header value. When the header value contains the wildcard token `*;q=0.5`, the parser returns `Left(ParseFailure(...))` and the handler maps this to `500 Internal Server Error`. On the patched build (commit `3a6175224bf96a9e2848cae706295485226590f7`), the parser returns `Right(Accept-Language(...))` and the handler responds with `200 OK`.",
+        "operationId": "getRoot",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": true,
+            "description": "An `Accept-Language` header value containing the wildcard token `*;q=0.5`, as recommended by MDN and produced by major HTTP clients (Firefox, Safari, Spring's `LocaleContextResolver`). The exact value used in the reproduction is the verbatim MDN example.\n\nThe wildcard `*;q=0.5` is the trigger: without it, the parser succeeds on both buggy and patched builds; with it, the parser fails on buggy builds and succeeds on patched builds.",
+            "schema": {
+              "type": "string",
+              "pattern": "^.*\\*;q=[0-9.]+.*$",
+              "example": "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PATCHED response. Returned by the Ember server at commit `3a6175224bf96a9e2848cae706295485226590f7` and later, when the `Accept-Language` header parses successfully. The response body echoes the canonical rendering of the parsed value, confirming that the parser round-trips the wildcard token.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Parsed Accept-Language successfully: fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "BUGGY response. Returned by the Ember server at commit `82f8c4b90b08bd6e037b400db52f20b86d666c23` when the `Accept-Language` header value contains the wildcard token `*;q=0.5`. The response body contains the message of the underlying `ParseFailure`, which surfaces the parser's internal error state.\n\nIn a production application, the body would typically be a generic `500` page (the parse failure is returned as a `ParseResult` rather than thrown as an exception, so it does not appear in server logs unless explicitly logged).",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Accept-Language parse failure: Invalid Accept-Language header: Error(0,NonEmptyList(InRange(0,A,Z), InRange(0,a,z)))"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "x-bug-metadata": {
+      "bug_id": "http4s-1",
+      "issue_no": 5069,
+      "repo": "http4s",
+      "issue_url": "https://github.com/http4s/http4s/issues/5069",
+      "fix_pr_url": "https://github.com/http4s/http4s/pull/5070",
+      "buggy_sha": "82f8c4b90b08bd6e037b400db52f20b86d666c23",
+      "patch_sha": "3a6175224bf96a9e2848cae706295485226590f7",
+      "buggy_status_code": 500,
+      "patched_status_code": 200,
+      "rfc_reference": "RFC 9110 §12.5.4"
+    }
+  }
+}
